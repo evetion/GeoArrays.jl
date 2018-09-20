@@ -21,6 +21,18 @@ geoarray = GeoRaster.read(fn)
 sum(skipmissing(ga))
 0x000000012e1bd50a
 
+# Find coordinates by index
+coords(geoarray, [0,0])
+2-element Array{Float64,1}:
+ 409999.85000000003
+      9.80300015e6
+
+# Find index by coordinates
+coords(geoarray, [409999.950, 9803000.050])
+2-element Array{Int64,1}:
+ 1
+ 1
+
 ```
 
 A GeoArray is an Array of Union{Missing, T}, an AffineMap for calculating coordinates based on the axes and a CRS to interpret these coordinates into in the real world.
