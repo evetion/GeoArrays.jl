@@ -1,5 +1,5 @@
 # GeoRaster **WIP**
-Very simple geographical raster interaction built on top of [ArchGDAL](https://github.com/yeesian/ArchGDAL.jl/) and [GDAL](https://github.com/JuliaGeo/GDAL.jl).
+Simple geographical raster interaction built on top of [ArchGDAL](https://github.com/yeesian/ArchGDAL.jl/), [GDAL](https://github.com/JuliaGeo/GDAL.jl) and [CoordinateTransformations](https://github.com/FugroRoames/CoordinateTransformations.jl).
 
 ## Examples
 
@@ -22,17 +22,16 @@ sum(skipmissing(ga))
 0x000000012e1bd50a
 
 # Find coordinates by index
-coords(geoarray, [0,0])
+julia> coords(geoarray, [1,1])
 2-element Array{Float64,1}:
- 409999.85000000003
-      9.80300015e6
+ 409999.95
+      9.80300005e6
 
 # Find index by coordinates
-coords(geoarray, [409999.950, 9803000.050])
+julia> coords(geoarray, [409999.95, 9.80300005e6])
 2-element Array{Int64,1}:
  1
  1
-
 ```
 
 A GeoArray is an Array of Union{Missing, T}, an AffineMap for calculating coordinates based on the axes and a CRS to interpret these coordinates into in the real world.

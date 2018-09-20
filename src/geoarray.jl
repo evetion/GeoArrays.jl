@@ -34,3 +34,8 @@ end
 function coords(ga::GeoArray, p::Vector{Float64})
     map(Int64, inv(ga.f)(p).+1)
 end
+
+function coords(ga::GeoArray)
+    (ui, uj) = size(ga)[1:2]
+    ga.f.([SVector{2, Float64}(i,j) for i in 0:ui+1, j in 0:uj+1])
+end
