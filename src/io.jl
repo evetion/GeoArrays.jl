@@ -1,4 +1,3 @@
-
 function read(fn::AbstractString)
     # GDAL specific init
     GDAL.allregister()

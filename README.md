@@ -32,6 +32,23 @@ julia> coords(geoarray, [409999.95, 9.80300005e6])
 2-element Array{Int64,1}:
  1
  1
+
+# Or directly
+julia> geoarray[409999.95, 9.80300005e6]
+3-element Array{Union{Missing, UInt8},1}:
+ 0x36
+ 0x37
+ 0x32
+
+# Find all coordinates
+julia> coords(geoarray)
+10002×10002 Array{StaticArrays.SArray{Tuple{2},Float64,1,2},2}:
+ [410000.0, 9.803e6]   [410000.0, 9.803e6]   …  [410000.0, 9.802e6]   [410000.0, 9.802e6]
+ [410000.0, 9.803e6]   [410000.0, 9.803e6]      [410000.0, 9.802e6]   [410000.0, 9.802e6]
+ [4.1e5, 9.803e6]      [4.1e5, 9.803e6]         [4.1e5, 9.802e6]      [4.1e5, 9.802e6]
+ [4.1e5, 9.803e6]      [4.1e5, 9.803e6]         [4.1e5, 9.802e6]      [4.1e5, 9.802e6]
+ [4.1e5, 9.803e6]      [4.1e5, 9.803e6]         [4.1e5, 9.802e6]      [4.1e5, 9.802e6]
+ [4.1e5, 9.803e6]      [4.1e5, 9.803e6]      …  [4.1e5, 9.802e6]
 ```
 
 A GeoArray is an Array of Union{Missing, T}, an AffineMap for calculating coordinates based on the axes and a CRS to interpret these coordinates into in the real world.

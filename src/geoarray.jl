@@ -1,6 +1,3 @@
-using CoordinateTransformations
-# using StaticArrays
-
 struct GeoArray{T, N} <: AbstractArray{Union{Missing, T}, N}
     A::Array{Union{Missing, T}, N}
     f::AffineMap
@@ -10,7 +7,7 @@ end
 Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{T}) where {T<:GeoArray} = IndexLinear()
 Base.getindex(ga::GeoArray, i::Int) = getindex(ga.A, i)
-Base.getindex(ga::GeoArray, I::Vararg{Int, 2}) = getindex(ga.A, I..., 1)
+Base.getindex(ga::GeoArray, I::Vararg{Int, 2}) = getindex(ga.A, I..., :)
 Base.getindex(ga::GeoArray, I::Vararg{Int, 3}) = getindex(ga.A, I...)
 Base.iterate(ga::GeoArray) = iterate(ga.A)
 Base.length(ga::GeoArray) = length(ga.A)
@@ -27,15 +24,26 @@ function Base.show(ga::GeoArray)
     print("$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and WKID $(ga.crs)")
 end
 
-function coords(ga::GeoArray, p::Vector{Int64})
+function coords(ga::GeoArray, p::SVector{2, Int64})
     ga.f(p.-1)
 end
+coords(ga::GeoArray, p::Vector{Int64}) = coords(ga, SVector{2}(p))
 
-function coords(ga::GeoArray, p::Vector{Float64})
-    map(Int64, inv(ga.f)(p).+1)
+function coords(ga::GeoArray, p::SVector{2, Float64})
+    map(x->round(Int64, x), inv(ga.f)(p)::SVector{2, Float64}).+1
 end
+coords(ga::GeoArray, p::Vector{Float64}) = coords(ga, SVector{2}(p))
+coords(ga::GeoArray, p::Tuple{Float64, Float64}) = coords(ga, SVector{2}(p))
+
+function Base.getindex(ga::GeoArray, I::SVector{2, Float64})
+    (i, j) = coords(ga, I)
+    return ga[i, j, :]
+end
+Base.getindex(ga::GeoArray, I::Vararg{Float64, 2}) = Base.getindex(ga, SVector{2}(I))
 
 function coords(ga::GeoArray)
     (ui, uj) = size(ga)[1:2]
-    ga.f.([SVector{2, Float64}(i,j) for i in 0:ui+1, j in 0:uj+1])
+    c = Array{SArray{Tuple{2},Float64,1,2},2}(undef, ui, uj)
+    ci = [SVector{2}(i,j) for i in 0:ui, j in 0:uj]
+    map!(ga.f, c, ci)
 end
