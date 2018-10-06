@@ -1,8 +1,9 @@
 struct GeoArray{T, N} <: AbstractArray{Union{Missing, T}, N}
     A::Array{Union{Missing, T}, N}
     f::AffineMap
-    crs::Union{Int, Nothing}
+    crs::AbstractString
 end
+GeoArray(A::AbstractArray) = GeoArray(Array{Union{Missing, eltype(A)}}(A), geotransform_to_affine([0.,1.,0.,0.,0.,1.]), "")
 
 Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{T}) where {T<:GeoArray} = IndexLinear()
@@ -17,33 +18,45 @@ Base.parent(ga::GeoArray) = ga.A
 Base.eltype(::Type{GeoArray{T}}) where {T} = Union{Missing, T}
 
 function Base.show(io::IO, ga::GeoArray)
-    print(io, "$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and WKID $(ga.crs)")
+    print(io, "$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and WKT $(ga.crs)")
 end
-
 function Base.show(ga::GeoArray)
-    print("$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and WKID $(ga.crs)")
+    print("$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and WKT $(ga.crs)")
 end
 
+# Generate upper left coordinates for specic index
 function coords(ga::GeoArray, p::SVector{2, Int64})
     ga.f(p.-1)
 end
 coords(ga::GeoArray, p::Vector{Int64}) = coords(ga, SVector{2}(p))
 
-function coords(ga::GeoArray, p::SVector{2, Float64})
+# Generate center coordinates for specific index
+function centercoords(ga::GeoArray, p::SVector{2, Int64})
+    ga.f(p.-0.5)
+end
+centercoords(ga::GeoArray, p::Vector{Int64}) = centercoords(ga, SVector{2}(p))
+
+# Convert coordinates back to indices
+function indices(ga::GeoArray, p::SVector{2, Float64})
     map(x->round(Int64, x), inv(ga.f)(p)::SVector{2, Float64}).+1
 end
-coords(ga::GeoArray, p::Vector{Float64}) = coords(ga, SVector{2}(p))
-coords(ga::GeoArray, p::Tuple{Float64, Float64}) = coords(ga, SVector{2}(p))
+indices(ga::GeoArray, p::Vector{Float64}) = indices(ga, SVector{2}(p))
+indices(ga::GeoArray, p::Tuple{Float64, Float64}) = indices(ga, SVector{2}(p))
 
+# Overload indexing directly into GeoRaster
+# TODO This could be used for interpolation instead
 function Base.getindex(ga::GeoArray, I::SVector{2, Float64})
-    (i, j) = coords(ga, I)
+    (i, j) = indices(ga, I)
     return ga[i, j, :]
 end
 Base.getindex(ga::GeoArray, I::Vararg{Float64, 2}) = Base.getindex(ga, SVector{2}(I))
 
+# Generate coordinates for complete GeoRaster
 function coords(ga::GeoArray)
     (ui, uj) = size(ga)[1:2]
-    c = Array{SArray{Tuple{2},Float64,1,2},2}(undef, ui, uj)
-    ci = [SVector{2}(i,j) for i in 0:ui, j in 0:uj]
-    map!(ga.f, c, ci)
+    ci = [coords(ga, SVector{2}(i,j)) for i in 0:ui, j in 0:uj]
+end
+function centercoords(ga::GeoArray)
+    (ui, uj) = size(ga)[1:2]
+    ci = [centercoords(ga, SVector{2}(i,j)) for i in 0:ui-1, j in 0:uj-1]
 end

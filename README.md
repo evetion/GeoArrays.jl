@@ -1,11 +1,11 @@
-# GeoRaster **WIP**
+# GeoRasters **WIP**
 Simple geographical raster interaction built on top of [ArchGDAL](https://github.com/yeesian/ArchGDAL.jl/), [GDAL](https://github.com/JuliaGeo/GDAL.jl) and [CoordinateTransformations](https://github.com/FugroRoames/CoordinateTransformations.jl).
 
 ## Examples
 
 ```julia
-geoarray = GeoRaster.read(fn)
-10001×10001×3 GeoRaster.GeoArray{UInt8,3}:
+julia> geoarray = GeoRaster.read(fn)
+10001×10001×3 GeoRaster.GeoArray{Union{Missing, UInt8},3}:
  0x36  0x3a  0x40  0x48  0x46  0x37  0x35  0x43  0x3f  0x37  …  0x98         0x85         0x89
  0x3f  0x40  0x45  0x50  0x53  0x43  0x37  0x3b  0x3b  0x34     0x91         0x7d         0x79
  0x49  0x43  0x41  0x4a  0x52  0x46  0x37  0x35  0x31  0x2f     0x83         0x78         0x78
@@ -18,7 +18,7 @@ geoarray = GeoRaster.read(fn)
  0x35  0x34  0x33  0x31  0x35  0x3a  0x42  0x47  0x4d  0x6e         missing      missing      missing
  0x35  0x34  0x33  0x36  0x3c  0x40  0x42  0x42  0x3e  0x55         missing
 
-sum(skipmissing(ga))
+julia> sum(skipmissing(ga))
 0x000000012e1bd50a
 
 # Find coordinates by index
@@ -49,6 +49,11 @@ julia> coords(geoarray)
  [4.1e5, 9.803e6]      [4.1e5, 9.803e6]         [4.1e5, 9.802e6]      [4.1e5, 9.802e6]
  [4.1e5, 9.803e6]      [4.1e5, 9.803e6]         [4.1e5, 9.802e6]      [4.1e5, 9.802e6]
  [4.1e5, 9.803e6]      [4.1e5, 9.803e6]      …  [4.1e5, 9.802e6]
+
+# Write a TIFF
+julia> ga = GeoArray(rand(100,200,3))
+julia> GeoRasters.write!("test.tif", ga)
+
 ```
 
 A GeoArray is an Array of Union{Missing, T}, an AffineMap for calculating coordinates based on the axes and a CRS to interpret these coordinates into in the real world.

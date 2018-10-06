@@ -1,3 +1,3 @@
-@testset "GeoUtils" do
+@testset "GeoUtils" begin
     @test 1 == 1
 end

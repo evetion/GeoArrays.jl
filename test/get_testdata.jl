@@ -7,13 +7,13 @@ remotefiles = [
     "data/utmsmall.tif",
     "gdalworkshop/world.tif",
     "ospy/data4/aster.img",
-    "ospy/data4/aster.rrd",
+    # "ospy/data4/aster.rrd",
     "ospy/data5/aster.img",
-    "ospy/data5/aster.rrd",
+    # "ospy/data5/aster.rrd",
     "ospy/data5/doq1.img",
-    "ospy/data5/doq1.rrd",
+    # "ospy/data5/doq1.rrd",
     "ospy/data5/doq2.img",
-    "ospy/data5/doq2.rrd",
+    # "ospy/data5/doq2.rrd",
     "pyrasterio/example.tif",
     "pyrasterio/example2.tif",
     "pyrasterio/example3.tif",
@@ -31,4 +31,3 @@ for f in remotefiles
     currfile = joinpath(testdatadir, f)
     isfile(currfile) || download(REPO_URL*f*"?raw=true", currfile)
 end
-
