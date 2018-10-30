@@ -30,13 +30,6 @@ function affine_to_geotransform(am::AffineMap{Array{Float64,2},Array{Float64,1}}
 end
 
 
-function smiley()
-    a = falses(200,200)
-    sin(1)
-end
-
-
-
 const GMF = Dict(
     :GMF_ALL_VALID => 0x01,
     :GMF_PER_DATASET => 0x02,
@@ -58,22 +51,17 @@ function get_nodata(band::Ptr{Nothing})
         return nodata
     else
         @warn "Unsuccessful in getting nodata."
-        println(nodata)
         return nothing
     end
 end
 get_nodata(band::ArchGDAL.RasterBand) = get_nodata(Ptr{Nothing}(band.ptr))
 
 function wkt2epsg(wkt::AbstractString)
-    println(wkt)
     if isempty(wkt)
         return nothing # no projection
     else
         srs = GDAL.newspatialreference(C_NULL)
-        println(GDAL.importfromwkt(srs, [wkt]))
-        println(srs)
         epsgcodes = GDAL.getauthoritycode(srs, C_NULL)
-        println(epsgcodes)
         epsg = parse(Int, epsgcodes)
         return epsg
     end
