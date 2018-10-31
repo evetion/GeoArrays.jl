@@ -5,13 +5,14 @@ matrix:
   include:
   - os: linux
     env: CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-    julia:
-      - 0.7
-      - 1.0
+    julia: 0.7
+  - os: linux
+    env: CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+    julia: 1.0
   - os: osx
-    julia:
-      - 0.7
-      - 1.0
+    julia: 0.7
+  - os: osx
+    julia: 1.0
 
 after_success:
   # push coverage results to Coveralls
