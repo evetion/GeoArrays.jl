@@ -1,3 +1,4 @@
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://evetion.github.io/GeoRasters.jl/stable)
 # GeoRasters **WIP**
 Simple geographical raster interaction built on top of [ArchGDAL](https://github.com/yeesian/ArchGDAL.jl/), [GDAL](https://github.com/JuliaGeo/GDAL.jl) and [CoordinateTransformations](https://github.com/FugroRoames/CoordinateTransformations.jl).
 
