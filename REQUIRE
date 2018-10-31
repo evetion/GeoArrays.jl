@@ -3,3 +3,6 @@ ArchGDAL
 GDAL
 CoordinateTransformations
 StaticArrays
+ImageCore
+ColorTypes
+RecipesBase

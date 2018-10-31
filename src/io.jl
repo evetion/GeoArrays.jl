@@ -1,11 +1,17 @@
 const gdt_lookup = Dict{DataType, GDAL.GDALDataType}(
+    # Base interpretation
     UInt8 => GDAL.GDT_Byte,
     UInt16 => GDAL.GDT_UInt16,
     Int16 => GDAL.GDT_Int16,
     UInt32 => GDAL.GDT_UInt32,
     Int32 => GDAL.GDT_Int32,
     Float32 => GDAL.GDT_Float32,
-    Float64 => GDAL.GDT_Float64
+    Float64 => GDAL.GDT_Float64,
+
+    # Colors (gray)
+    ImageCore.N0f8  => GDAL.GDT_Byte,
+    ImageCore.N0f16 => GDAL.GDT_UInt16,
+    ImageCore.N0f32 => GDAL.GDT_UInt32,
 )
 
 function read(fn::AbstractString)

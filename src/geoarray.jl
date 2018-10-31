@@ -2,7 +2,7 @@ struct GeoArray{T, N} <: AbstractArray{Union{Missing, T}, N}
     A::Array{Union{Missing, T}, N}
     f::AffineMap
     crs::AbstractString
-    GeoArray(A,f,crs) = length(size(A)) != 3 ? error("Array should be three-dimensional.") : new{T, N}(A,f,crs)
+    # GeoArray(A,f,crs) = length(size(A)) != 3 ? error("Array should be three-dimensional.") : new{<:Real, <:Int}(A,f,crs)
 end
 
 # GeoArray(A::AbstractArray) = GeoArray(reshape(Array{Union{Missing, eltype(A)}}(A), size(A)..., 1), geotransform_to_affine([0.,1.,0.,0.,0.,1.]), "")
