@@ -46,7 +46,7 @@ function read(fn::AbstractString)
         # Nodata values
         if :GMF_NODATA in maskflags
             @debug "Flag NODATA"
-            nodata = eltype(A)(get_nodata(band))
+            nodata = get_nodata(band)
             mask[:, :, i] = A[:,:,i] .== nodata
         end
     end
@@ -54,13 +54,10 @@ function read(fn::AbstractString)
 
     # crs
     wkt = ArchGDAL.getproj(dataset)
-    # println("WKT=$wkt")
-    # epsg = wkt2epsg(wkt)
 
     # GDAL specific cleanup
     ArchGDAL.destroy(dataset)
     GDAL.destroydrivermanager()
-
     GeoArray(A, am, wkt)
 end
 
