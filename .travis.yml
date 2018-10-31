@@ -1,19 +1,17 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
 
-julia:
-  - 0.7
-  - 1.0
-  - nightly
-
 matrix:
-  allow_failures:
-    - julia: nightly
   include:
   - os: linux
     env: CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+    julia:
+      - 0.7
+      - 1.0
   - os: osx
-
+    julia:
+      - 0.7
+      - 1.0
 
 after_success:
   # push coverage results to Coveralls
