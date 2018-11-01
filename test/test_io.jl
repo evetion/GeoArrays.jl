@@ -2,8 +2,9 @@
 
 @testset "Reading rasters" begin
 for f in remotefiles
-    ga = GeoRasters.read(f)
-    println(f, ga.f)
+    @testset "Reading $f" begin
+        ga = GeoRasters.read(f)
+    end
 end
 end
 
