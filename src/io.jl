@@ -17,7 +17,7 @@ function read(fn::AbstractString)
     am = get_affine_map(dataset)
 
     # nodata masking
-    A = Array{Union{Missing, eltype(A)}}(A)
+    # A = Array{Union{Missing, eltype(A)}}(A)
     mask = falses(size(A))
     for i = 1:size(A)[end]
         band = ArchGDAL.getband(dataset, i)
@@ -27,30 +27,30 @@ function read(fn::AbstractString)
         if :GMF_ALL_VALID in maskflags
             @debug "No masking"
             continue
-        end
         # Mask is valid for all bands
-        if :GMF_PER_DATASET in maskflags
+        elseif :GMF_PER_DATASET in maskflags
             @debug "Mask for each band"
             maskband = ArchGDAL.getmaskband(band)
             m = ArchGDAL.read(maskband) .== 0
-            for ii in 1:n+1
-                mask[:,:,ii] = m
-            end
-            break
-        end
+            mask[:,:,i] = m
         # Alpha layer
-        if :GMF_ALPHA in maskflags
+        elseif :GMF_ALPHA in maskflags
             @warn "Dataset has band $i with an Alpha band, which is unsupported for now."
             continue
-        end
         # Nodata values
-        if :GMF_NODATA in maskflags
+        elseif :GMF_NODATA in maskflags
             @debug "Flag NODATA"
             nodata = get_nodata(band)
             mask[:, :, i] = A[:,:,i] .== nodata
+        else
+            @warn "Unknown/unsupported mask."
         end
     end
-    A[mask] .= missing
+
+    if any(mask)
+        A = Array{Union{Missing, eltype(A)}}(A)
+        A[mask] .= missing
+    end
 
     # crs
     wkt = ArchGDAL.getproj(dataset)
@@ -61,24 +61,29 @@ function read(fn::AbstractString)
     GeoArray(A, am, wkt)
 end
 
-function write!(fn::AbstractString, ga::GeoArray, nodata=typemax(eltype(ga).b))
+function write!(fn::AbstractString, ga::GeoArray, nodata=nothing)
     GDAL.allregister()
     shortname = find_shortname(fn)
     w, h, b = size(ga)
-    dtype = eltype(ga).b
+    dtype = eltype(ga)
+    data = copy(ga.A)
+    use_nodata = false
+
+    # Slice data and replace missing by nodata
+    if isa(dtype, Union) && dtype.a == Missing
+        dtype = dtype.b
+        nodata == nothing && (nodata = typemax(dtype))
+        m = ismissing.(data)
+        data[m] .= nodata
+        data = Array{dtype}(data)
+        use_nodata = true
+    end
 
     ArchGDAL.create(fn, shortname, width=w, height=h, nbands=b, dtype=dtype) do dataset
         for i=1:b
             band = ArchGDAL.getband(dataset, i)
-
-            # Slice data and replace missing by nodata
-            data = ga[:,:,i]
-            m = ismissing.(data)
-            data[m] .= nodata
-            data = Array{dtype}(data)
-
-            ArchGDAL.write!(band, data)
-            GDAL.setrasternodatavalue(band.ptr, nodata)
+            ArchGDAL.write!(band, data[:,:,i])
+            use_nodata && GDAL.setrasternodatavalue(band.ptr, nodata)
         end
 
         # Set geotransform and crs

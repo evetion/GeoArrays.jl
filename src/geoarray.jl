@@ -1,9 +1,10 @@
-struct GeoArray{T, N} <: AbstractArray{Union{Missing, T}, N}
-    A::Array{Union{Missing, T}, N}
+# TODO Catch only Real and Union of Missing, Real?
+struct GeoArray{T} <: AbstractArray{T, 3}
+    A::AbstractArray{T, 3}
     f::AffineMap
     crs::AbstractString
 end
-GeoArray(A::AbstractArray) = GeoArray(Array{Union{Missing, eltype(A)}}(A), geotransform_to_affine([0.,1.,0.,0.,0.,1.]), "")
+GeoArray(A::AbstractArray) = GeoArray(A, geotransform_to_affine(SVector(0.,1.,0.,0.,0.,1.)), "")
 
 Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{T}) where {T<:GeoArray} = IndexLinear()
@@ -15,7 +16,7 @@ Base.length(ga::GeoArray) = length(ga.A)
 Base.parent(ga::GeoArray) = ga.A
 # Base.map(f, ga::GeoArray) = GeoArray(map(f, ga.A), ga.f, ga.crs)
 # Base.convert(::Type{Array{T, 3}}, A::GeoArray{T}) where {T} = convert(Array{T,3}, ga.A)
-Base.eltype(::Type{GeoArray{T}}) where {T} = Union{Missing, T}
+Base.eltype(::Type{GeoArray{T}}) where {T} = T
 
 function Base.show(io::IO, ga::GeoArray)
     print(io, "$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and WKT $(ga.crs)")

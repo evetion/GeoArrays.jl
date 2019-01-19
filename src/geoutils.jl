@@ -29,14 +29,6 @@ function affine_to_geotransform(am::AffineMap{Array{Float64,2},Array{Float64,1}}
     [t[1], l[1], l[2], t[2], l[3], l[4]]
 end
 
-
-function smiley()
-    a = falses(200,200)
-    sin(1)
-end
-
-
-
 const GMF = Dict(
     :GMF_ALL_VALID => 0x01,
     :GMF_PER_DATASET => 0x02,
@@ -58,7 +50,6 @@ function get_nodata(band::Ptr{Nothing})
         return nodata
     else
         @warn "Unsuccessful in getting nodata."
-        println(nodata)
         return nothing
     end
 end
@@ -70,10 +61,7 @@ function wkt2epsg(wkt::AbstractString)
         return nothing # no projection
     else
         srs = GDAL.newspatialreference(C_NULL)
-        println(GDAL.importfromwkt(srs, [wkt]))
-        println(srs)
         epsgcodes = GDAL.getauthoritycode(srs, C_NULL)
-        println(epsgcodes)
         epsg = parse(Int, epsgcodes)
         return epsg
     end
