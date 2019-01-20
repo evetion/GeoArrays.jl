@@ -29,31 +29,6 @@ function affine_to_geotransform(am::AffineMap{Array{Float64,2},Array{Float64,1}}
     [t[1], l[1], l[2], t[2], l[3], l[4]]
 end
 
-const GMF = Dict(
-    :GMF_ALL_VALID => 0x01,
-    :GMF_PER_DATASET => 0x02,
-    :GMF_ALPHA => 0x04,
-    :GMF_NODATA => 0x08,
-    )
-
-"""Takes bitwise OR-ed set of status flags and returns flags."""
-function mask_flags(flags::Int32)
-    (f.first for f in GMF if (flags & f.second) == f.second)
-end
-mask_flags(band::ArchGDAL.RasterBand) = mask_flags(GDAL.C.GDALGetMaskFlags(Ptr{Nothing}(band.ptr)))
-
-"""Retrieves nodata value from RasterBand."""
-function get_nodata(band::Ptr{Nothing})
-    succes_value = Int32(0)
-    nodata = GDAL.C.GDALGetRasterNoDataValue(band, Ref(succes_value))
-    if succes_value == 0
-        return nodata
-    else
-        @warn "Unsuccessful in getting nodata."
-        return nothing
-    end
-end
-get_nodata(band::ArchGDAL.RasterBand) = get_nodata(Ptr{Nothing}(band.ptr))
 
 function wkt2epsg(wkt::AbstractString)
     println(wkt)
@@ -65,4 +40,10 @@ function wkt2epsg(wkt::AbstractString)
         epsg = parse(Int, epsgcodes)
         return epsg
     end
+end
+
+function bbox(ga::GeoArray)
+    min = ga.f(SVector(0,0))
+    max = ga.f(SVector(size(ga)[1:2]))
+    (min_x=min[1], min_y=min[2], max_x=max[1], max_y=max[2])
 end

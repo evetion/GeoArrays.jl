@@ -12,6 +12,7 @@ function read(fn::AbstractString)
     # GDAL specific init
     GDAL.allregister()
 
+    isfile(fn) || error("File not found.")
     dataset = ArchGDAL.unsafe_read(fn)
     A = ArchGDAL.read(dataset)
     am = get_affine_map(dataset)

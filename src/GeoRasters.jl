@@ -5,8 +5,8 @@ using GDAL
 using CoordinateTransformations
 using StaticArrays
 
-include("geoutils.jl")
 include("geoarray.jl")
+include("geoutils.jl")
 include("io.jl")
 include("utils.jl")
 
