@@ -1,5 +1,4 @@
-# TODO Catch only Real and Union of Missing, Real?
-struct GeoArray{T} <: AbstractArray{T, 3}
+struct GeoArray{T<:Union{Real, Union{Missing, Real}}} <: AbstractArray{T, 3}
     A::AbstractArray{T, 3}
     f::AffineMap
     crs::AbstractString
