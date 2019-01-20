@@ -1,6 +1,10 @@
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://evetion.github.io/GeoRasters.jl/stable)
-# GeoRasters **WIP**
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://evetion.github.io/GeoRasters.jl/) [![Build Status](https://travis-ci.org/evetion/GeoRasters.jl.svg?branch=master)](https://travis-ci.org/evetion/GeoRasters.jl) [![Build status](https://ci.appveyor.com/api/projects/status/shk6aock4h80cd7j?svg=true)](https://ci.appveyor.com/project/evetion/georasters-jl)
+# GeoRasters
 Simple geographical raster interaction built on top of [ArchGDAL](https://github.com/yeesian/ArchGDAL.jl/), [GDAL](https://github.com/JuliaGeo/GDAL.jl) and [CoordinateTransformations](https://github.com/FugroRoames/CoordinateTransformations.jl).
+
+A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based on the axes and a CRS definition to interpret these coordinates into in the real world.
+
+*this is a work in progress*
 
 ## Examples
 
@@ -57,4 +61,3 @@ julia> GeoRasters.write!("test.tif", ga)
 
 ```
 
-A GeoArray is an Array of Union{Missing, T}, an AffineMap for calculating coordinates based on the axes and a CRS to interpret these coordinates into in the real world.
