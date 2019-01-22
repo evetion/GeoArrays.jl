@@ -80,7 +80,11 @@ function write!(fn::AbstractString, ga::GeoArray, nodata=nothing)
         use_nodata = true
     end
 
-    ArchGDAL.create(fn, shortname, width=w, height=h, nbands=b, dtype=dtype) do dataset
+    # Set creation options for GeoTIFFs, enable compression by default
+    options = shortname == "GTiff" ? ["COMPRESS=DEFLATE", "TILED=YES"] : String[]
+
+    ArchGDAL.create(fn, shortname, width=w, height=h, nbands=b, dtype=dtype,
+            options=options) do dataset
         for i=1:b
             band = ArchGDAL.getband(dataset, i)
             ArchGDAL.write!(band, data[:,:,i])
