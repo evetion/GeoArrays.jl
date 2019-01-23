@@ -65,10 +65,14 @@ end
 function write!(fn::AbstractString, ga::GeoArray, nodata=nothing)
     GDAL.allregister()
     shortname = find_shortname(fn)
+    options = String[]
     w, h, b = size(ga)
     dtype = eltype(ga)
     data = copy(ga.A)
     use_nodata = false
+
+    # Set compression options for GeoTIFFs
+    shortname == "GTiff" && (options = ["COMPRESS=DEFLATE","TILED=YES"])
 
     # Slice data and replace missing by nodata
     if isa(dtype, Union) && dtype.a == Missing
@@ -80,7 +84,7 @@ function write!(fn::AbstractString, ga::GeoArray, nodata=nothing)
         use_nodata = true
     end
 
-    ArchGDAL.create(fn, shortname, width=w, height=h, nbands=b, dtype=dtype) do dataset
+    ArchGDAL.create(fn, shortname, width=w, height=h, nbands=b, dtype=dtype, options=options) do dataset
         for i=1:b
             band = ArchGDAL.getband(dataset, i)
             ArchGDAL.write!(band, data[:,:,i])
