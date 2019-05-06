@@ -55,9 +55,21 @@ Base.getindex(ga::GeoArray, I::Vararg{Float64, 2}) = Base.getindex(ga, SVector{2
 # Generate coordinates for complete GeoRaster
 function coords(ga::GeoArray)
     (ui, uj) = size(ga)[1:2]
-    ci = [coords(ga, SVector{2}(i,j)) for i in 0:ui, j in 0:uj]
+    ci = [coords(ga, SVector{2}(i,j)) for i in 1:ui+1, j in 1:uj+1]
 end
 function centercoords(ga::GeoArray)
     (ui, uj) = size(ga)[1:2]
-    ci = [centercoords(ga, SVector{2}(i,j)) for i in 0:ui-1, j in 0:uj-1]
+    ci = [centercoords(ga, SVector{2}(i,j)) for i in 1:ui, j in 1:uj]
+end
+function centercoordsnotmissing(ga::GeoArray)
+    (ui, uj) = size(ga)[1:2]
+    ci = [centercoords(ga, SVector{2}(i,j)) for i in 1:ui, j in 1:uj if ~ismissing(ga.A[i, j])]
+end
+function centercoordsmissing(ga::GeoArray)
+    (ui, uj) = size(ga)[1:2]
+    ci = [centercoords(ga, SVector{2}(i,j)) for i in 1:ui, j in 1:uj if ismissing(ga.A[i, j])]
+end
+function indexmissing(ga::GeoArray)
+    (ui, uj) = size(ga)[1:2]
+    ci = [[i,j] for i in 1:ui, j in 1:uj if ismissing(ga.A[i, j])]
 end
