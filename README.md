@@ -6,6 +6,11 @@ A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based o
 
 *this is a work in progress*
 
+## Installation
+```julia
+(v1.1) pkg> add https://github.com/evetion/GeoRasters.jl.git
+```
+
 ## Examples
 
 ```julia
@@ -55,9 +60,12 @@ julia> coords(geoarray)
  [4.1e5, 9.803e6]      [4.1e5, 9.803e6]         [4.1e5, 9.802e6]      [4.1e5, 9.802e6]
  [4.1e5, 9.803e6]      [4.1e5, 9.803e6]      …  [4.1e5, 9.802e6]
 
+# Translate complete raster by x + 100
+julia> trans = Translation(100, 0)
+julia> compose!(ga, trans)
+
 # Write a TIFF
 julia> ga = GeoArray(rand(100,200,3))
 julia> GeoRasters.write!("test.tif", ga)
 
 ```
-
