@@ -1,4 +1,4 @@
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://evetion.github.io/GeoRasters.jl/) [![Build Status](https://travis-ci.org/evetion/GeoRasters.jl.svg?branch=master)](https://travis-ci.org/evetion/GeoRasters.jl) [![Build status](https://ci.appveyor.com/api/projects/status/shk6aock4h80cd7j?svg=true)](https://ci.appveyor.com/project/evetion/georasters-jl)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://evetion.github.io/GeoRasters.jl/) [![Build Status](https://travis-ci.org/evetion/GeoRasters.jl.svg?branch=master)](https://travis-ci.org/evetion/GeoRasters.jl) [![Build status](https://ci.appveyor.com/api/projects/status/shk6aock4h80cd7j?svg=true)](https://ci.appveyor.com/project/evetion/georasters-jl) [![codecov](https://codecov.io/gh/evetion/GeoRasters.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/evetion/GeoRasters.jl)
 # GeoRasters
 Simple geographical raster interaction built on top of [ArchGDAL](https://github.com/yeesian/ArchGDAL.jl/), [GDAL](https://github.com/JuliaGeo/GDAL.jl) and [CoordinateTransformations](https://github.com/FugroRoames/CoordinateTransformations.jl).
 
