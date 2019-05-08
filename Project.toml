@@ -12,7 +12,7 @@ GeoStatsDevTools = "19e549d1-356f-5655-9f3d-c1d6136da705"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-julia = ">= 0.7"
+julia = ">= 1.0"
 GeoStatsBase = ">= 0.4.2"
 
 [extras]
