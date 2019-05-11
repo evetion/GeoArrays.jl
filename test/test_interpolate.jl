@@ -1,4 +1,5 @@
 using GeoStats
+using StaticArrays
 
 @testset "Interpolating rasters" begin
     @testset "Regular Grid interpolation" begin
