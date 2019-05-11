@@ -10,7 +10,7 @@ using StaticArrays
         @test sum(ismissing.(ga)) == 0
     end
     @testset "Irregular Grid interpolation (not yet supported)" begin
-        ga = GeoArray(rand(10, 10), GeoRasters.geotransform_to_affine(SVector(0.,1.,1.,0.,0.,1.)), "")
+        ga = GeoArray(Array{Union{Missing, Float64}}(rand(10, 10, 1)), GeoRasters.geotransform_to_affine(SVector(0.,1.,1.,0.,0.,1.)), "")
         @test_throws ErrorException GeoRasters.interpolate!(ga, Kriging())
     end
 end
