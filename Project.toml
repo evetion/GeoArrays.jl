@@ -12,8 +12,8 @@ GeoStatsDevTools = "19e549d1-356f-5655-9f3d-c1d6136da705"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-julia = ">= 1.0"
 GeoStatsBase = ">= 0.4.2"
+julia = ">= 1.0"
 
 [extras]
 GeoStats = "dcc97b0b-8ce5-5539-9008-bb190f959ef6"
