@@ -9,6 +9,7 @@ include("geoarray.jl")
 include("geoutils.jl")
 include("io.jl")
 include("utils.jl")
+include("interpolate.jl")
 
 export GeoArray
 export coords

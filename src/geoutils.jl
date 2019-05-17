@@ -29,6 +29,11 @@ function affine_to_geotransform(am::AffineMap{Array{Float64,2},Array{Float64,1}}
     [t[1], l[1], l[2], t[2], l[3], l[4]]
 end
 
+"""Check wether the AffineMap of a GeoArray contains rotations."""
+function is_rotated(ga::GeoArray)
+    ga.f.linear[2] != 0. || ga.f.linear[3] != 0.
+end
+
 # "Get the WKT of an Integer EPSG code"
 # function epsg2wkt(epsg::Nullable{Int})
 #     if isnull(epsg)

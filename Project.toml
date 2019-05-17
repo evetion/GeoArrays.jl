@@ -1,0 +1,23 @@
+name = "GeoRasters"
+uuid = "2fb1d81b-e6a0-5fc5-82e6-8e06903437ab"
+authors = ["Maarten Pronk <git@evetion.nl>"]
+version = "0.1.0"
+
+[deps]
+ArchGDAL = "c9ce4bd3-c3d5-55b8-8973-c0e20141b8c3"
+CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
+GDAL = "add2ef01-049f-52c4-9ee2-e494f65e021a"
+GeoStatsBase = "323cb8eb-fbf6-51c0-afd0-f8fba70507b2"
+GeoStatsDevTools = "19e549d1-356f-5655-9f3d-c1d6136da705"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
+[compat]
+GeoStatsBase = ">= 0.4.2"
+julia = ">= 1.0"
+
+[extras]
+GeoStats = "dcc97b0b-8ce5-5539-9008-bb190f959ef6"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test", "GeoStats"]

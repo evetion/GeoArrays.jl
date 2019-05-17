@@ -26,20 +26,20 @@ function Base.show(ga::GeoArray)
 end
 
 # Generate upper left coordinates for specic index
-function coords(ga::GeoArray, p::SVector{2, Int64})
+function coords(ga::GeoArray, p::SVector{2, Int})
     ga.f(p.-1)
 end
-coords(ga::GeoArray, p::Vector{Int64}) = coords(ga, SVector{2}(p))
+coords(ga::GeoArray, p::Vector{Int}) = coords(ga, SVector{2}(p))
 
 # Generate center coordinates for specific index
-function centercoords(ga::GeoArray, p::SVector{2, Int64})
+function centercoords(ga::GeoArray, p::SVector{2, Int})
     ga.f(p.-0.5)
 end
-centercoords(ga::GeoArray, p::Vector{Int64}) = centercoords(ga, SVector{2}(p))
+centercoords(ga::GeoArray, p::Vector{Int}) = centercoords(ga, SVector{2}(p))
 
 # Convert coordinates back to indices
 function indices(ga::GeoArray, p::SVector{2, Float64})
-    map(x->round(Int64, x), inv(ga.f)(p)::SVector{2, Float64}).+1
+    map(x->round(Int, x), inv(ga.f)(p)::SVector{2, Float64}).+1
 end
 indices(ga::GeoArray, p::Vector{Float64}) = indices(ga, SVector{2}(p))
 indices(ga::GeoArray, p::Tuple{Float64, Float64}) = indices(ga, SVector{2}(p))
