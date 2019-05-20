@@ -1,4 +1,4 @@
-name = "GeoRasters"
+name = "GeoArrays"
 uuid = "2fb1d81b-e6a0-5fc5-82e6-8e06903437ab"
 authors = ["Maarten Pronk <git@evetion.nl>"]
 version = "0.1.0"

@@ -1,4 +1,4 @@
-module GeoRasters
+module GeoArrays
 
 using ArchGDAL
 using GDAL

@@ -1,10 +1,10 @@
-# GeoRasters.jl Documentation
+# GeoArrays.jl Documentation
 
 ```@contents
 ```
 
 ```@autodocs
-Modules = [GeoRasters]
+Modules = [GeoArrays]
 Order   = [:function, :type]
 ```
 
