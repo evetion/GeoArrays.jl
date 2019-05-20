@@ -17,35 +17,35 @@
     end
 
     @testset "Proj string" begin
-        result = GeoRasters.str2wkt(merc_proj_string)
+        result = GeoArrays.str2wkt(merc_proj_string)
         @test result == merc_wkt
     end
 
     @testset "EPSG code" begin
-        result = GeoRasters.epsg2wkt(epsg_nl_code)
+        result = GeoArrays.epsg2wkt(epsg_nl_code)
         @test result == epsg_nl_wkt
     end
 
     @testset "Projection string checking" begin
         # EPSG string handling
-        result = GeoRasters.str2wkt(epsg_nl_str)
+        result = GeoArrays.str2wkt(epsg_nl_str)
         @test result == epsg_nl_wkt
 
         # Proj string handling
-        result = GeoRasters.str2wkt(merc_proj_string)
+        result = GeoArrays.str2wkt(merc_proj_string)
         @test result == merc_wkt
 
         # WKT string handling
-        result = GeoRasters.str2wkt(merc_wkt)
+        result = GeoArrays.str2wkt(merc_wkt)
         @test result == merc_wkt
 
         # Invalid string
-        @test_throws ArgumentError GeoRasters.str2wkt("INVALID")
+        @test_throws ArgumentError GeoArrays.str2wkt("INVALID")
 
     end
 
     @testset "Check projection of file" begin
-        ga = GeoRasters.read("gdalworkshop/world.tif")
+        ga = GeoArrays.read("gdalworkshop/world.tif")
         @test ga.crs == "GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4326\"]]"
     end
 
