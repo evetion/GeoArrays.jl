@@ -44,7 +44,7 @@ end
 indices(ga::GeoArray, p::Vector{Float64}) = indices(ga, SVector{2}(p))
 indices(ga::GeoArray, p::Tuple{Float64, Float64}) = indices(ga, SVector{2}(p))
 
-# Overload indexing directly into GeoRaster
+# Overload indexing directly into GeoArray
 # TODO This could be used for interpolation instead
 function Base.getindex(ga::GeoArray, I::SVector{2, Float64})
     (i, j) = indices(ga, I)
@@ -52,7 +52,7 @@ function Base.getindex(ga::GeoArray, I::SVector{2, Float64})
 end
 Base.getindex(ga::GeoArray, I::Vararg{Float64, 2}) = Base.getindex(ga, SVector{2}(I))
 
-# Generate coordinates for complete GeoRaster
+# Generate coordinates for complete GeoArray
 function coords(ga::GeoArray)
     (ui, uj) = size(ga)[1:2]
     ci = [coords(ga, SVector{2}(i,j)) for i in 1:ui+1, j in 1:uj+1]
