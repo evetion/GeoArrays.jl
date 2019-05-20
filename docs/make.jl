@@ -1,8 +1,8 @@
 push!(LOAD_PATH,"../src/")
-using Documenter, GeoRasters
+using Documenter, GeoArrays
 
-makedocs(sitename="GeoRasters.jl")
+makedocs(sitename="GeoArrays.jl")
 
 deploydocs(
-    repo = "github.com/evetion/GeoRasters.jl.git",
+    repo = "github.com/evetion/GeoArrays.jl.git",
 )
