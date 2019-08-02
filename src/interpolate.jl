@@ -1,5 +1,4 @@
 using GeoStatsBase
-using GeoStatsDevTools
 
 """Interpolate missing values in GeoArray."""
 function interpolate!(ga::GeoArray, solver::T, band=1, symbol=:z) where T<:AbstractSolver
