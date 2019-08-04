@@ -20,4 +20,6 @@ after_success:
   # push coverage results to Codecov
   # - julia -e 'using Pkg; cd(Pkg.dir("GeoArrays")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
   # build documentation
-  - julia -e 'using Pkg; Pkg.add("Documenter"); using GeoArrays; cd(Pkg.dir("GeoArrays")); include(joinpath("docs", "make.jl"))'
+  - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
+                                         Pkg.instantiate()'
+  - julia --project=docs/ docs/make.jl

@@ -11,7 +11,7 @@ GeoStatsBase = "323cb8eb-fbf6-51c0-afd0-f8fba70507b2"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-GeoStatsBase = ">= 0.4.2"
+GeoStatsBase = ">= 0.5.0"
 julia = ">= 1.0"
 
 [extras]
