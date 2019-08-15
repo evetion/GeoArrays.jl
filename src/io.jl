@@ -10,7 +10,7 @@ const gdt_lookup = Dict{DataType, GDAL.GDALDataType}(
 
 function read(fn::AbstractString)
     # GDAL specific init
-    GDAL.allregister()
+    GDAL.gdalallregister()
 
     isfile(fn) || error("File not found.")
     dataset = ArchGDAL.unsafe_read(fn)
@@ -58,12 +58,12 @@ function read(fn::AbstractString)
 
     # GDAL specific cleanup
     ArchGDAL.destroy(dataset)
-    GDAL.destroydrivermanager()
+    GDAL.gdaldestroydrivermanager()
     GeoArray(A, am, wkt)
 end
 
 function write!(fn::AbstractString, ga::GeoArray, nodata=nothing)
-    GDAL.allregister()
+    GDAL.gdalallregister()
     shortname = find_shortname(fn)
     options = String[]
     w, h, b = size(ga)
@@ -84,19 +84,19 @@ function write!(fn::AbstractString, ga::GeoArray, nodata=nothing)
         use_nodata = true
     end
 
-    ArchGDAL.create(fn, shortname, width=w, height=h, nbands=b, dtype=dtype, options=options) do dataset
+    ArchGDAL.create(fn, driver=ArchGDAL.getdriver(shortname), width=w, height=h, nbands=b, dtype=dtype, options=options) do dataset
         for i=1:b
             band = ArchGDAL.getband(dataset, i)
             ArchGDAL.write!(band, data[:,:,i])
-            use_nodata && GDAL.setrasternodatavalue(band.ptr, nodata)
+            use_nodata && GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
         end
 
         # Set geotransform and crs
         gt = affine_to_geotransform(ga.f)
-        GDAL.setgeotransform(dataset.ptr, gt)
-        GDAL.setprojection(dataset.ptr, ga.crs)
+        GDAL.gdalsetgeotransform(dataset.ptr, gt)
+        GDAL.gdalsetprojection(dataset.ptr, ga.crs)
 
     end
     # GDAL specific cleanup
-    GDAL.destroydrivermanager()
+    GDAL.gdaldestroydrivermanager()
 end
