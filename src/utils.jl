@@ -23,12 +23,12 @@ const GMF = Dict(
 function mask_flags(flags::Int32)
     (f.first for f in GMF if (flags & f.second) == f.second)
 end
-mask_flags(band::ArchGDAL.IRasterBand) = mask_flags(GDAL.gdalgetmaskflags(Ptr{Nothing}(band.ptr)))
+mask_flags(band::ArchGDAL.AbstractRasterBand) = mask_flags(GDAL.gdalgetmaskflags(Ptr{Nothing}(band.ptr)))
 
 """Retrieves nodata value from RasterBand."""
 function get_nodata(band::Ptr{Nothing})
     succes_value = Int32(0)
-    nodata = GDAL.C.GDALGetRasterNoDataValue(band, Ref(succes_value))
+    nodata = GDAL.gdalgetrasternodatavalue(band, Ref(succes_value))
     if succes_value == 0
         return nodata
     else
@@ -36,4 +36,4 @@ function get_nodata(band::Ptr{Nothing})
         return nothing
     end
 end
-get_nodata(band::ArchGDAL.RasterBand) = get_nodata(Ptr{Nothing}(band.ptr))
+get_nodata(band::ArchGDAL.AbstractRasterBand) = get_nodata(Ptr{Nothing}(band.ptr))
