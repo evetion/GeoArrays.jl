@@ -9,9 +9,6 @@ const gdt_lookup = Dict{DataType, GDAL.GDALDataType}(
 )
 
 function read(fn::AbstractString)
-    # GDAL specific init
-    GDAL.gdalallregister()
-
     isfile(fn) || error("File not found.")
     dataset = ArchGDAL.unsafe_read(fn)
     A = ArchGDAL.read(dataset)
@@ -56,14 +53,11 @@ function read(fn::AbstractString)
     # crs
     wkt = ArchGDAL.getproj(dataset)
 
-    # GDAL specific cleanup
     ArchGDAL.destroy(dataset)
-    GDAL.gdaldestroydrivermanager()
     GeoArray(A, am, wkt)
 end
 
 function write!(fn::AbstractString, ga::GeoArray, nodata=nothing)
-    GDAL.gdalallregister()
     shortname = find_shortname(fn)
     options = String[]
     w, h, b = size(ga)
@@ -97,6 +91,4 @@ function write!(fn::AbstractString, ga::GeoArray, nodata=nothing)
         GDAL.gdalsetprojection(dataset.ptr, ga.crs)
 
     end
-    # GDAL specific cleanup
-    GDAL.gdaldestroydrivermanager()
 end
