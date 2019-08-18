@@ -95,10 +95,10 @@ deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[Distances]]
-deps = ["LinearAlgebra", "Printf", "Random", "Statistics", "Test"]
-git-tree-sha1 = "a135c7c062023051953141da8437ed74f89d767a"
+deps = ["LinearAlgebra", "Statistics"]
+git-tree-sha1 = "44bd29b50552dfd0a0b674b925de2719f3b9bb0b"
 uuid = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
-version = "0.8.0"
+version = "0.8.1"
 
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
@@ -221,14 +221,6 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 [[Profile]]
 deps = ["Printf"]
 uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
-
-[[Proj4]]
-deps = ["BinaryProvider", "CEnum", "Dates", "Libdl", "Printf", "Test"]
-git-tree-sha1 = "93a1966c09a738e91f651bf3bca8d26536e8153a"
-repo-rev = "wrap6"
-repo-url = "https://github.com/JuliaGeo/Proj4.jl.git"
-uuid = "9a7e659c-8ee8-5706-894e-f68f43bc57ea"
-version = "0.5.0+"
 
 [[QuadGK]]
 deps = ["DataStructures", "LinearAlgebra", "Test"]
