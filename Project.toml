@@ -13,6 +13,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 GeoStatsBase = ">= 0.5.0"
 julia = ">= 1.0"
+GDAL = ">=1.0"
 
 [extras]
 GeoStats = "dcc97b0b-8ce5-5539-9008-bb190f959ef6"
