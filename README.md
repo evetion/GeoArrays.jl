@@ -7,53 +7,86 @@ A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based o
 *this is a work in progress*
 
 ## Installation
-```julia
-(v1.1) pkg> add https://github.com/evetion/GeoArrays.jl.git
+```
+(v1.2) pkg> add GeoArrays
 ```
 
 ## Examples
 
+##### Read raster
 ```julia
-julia> using GeoArrays
+using GeoArrays
 
-# Read TIF file
-julia> fn = joinpath(dirname(pathof(GeoArrays)), "..", "test/data/utmsmall.tif")
-julia> geoarray = GeoArrays.read(fn)
+fn = joinpath(dirname(pathof(GeoArrays)), "..", "test/data/utmsmall.tif")
+geoarray = GeoArrays.read(fn)
 100×100×1 GeoArray{UInt8}:
-...
+[:, :, 1] =
+ 0x6b  0x73  0x73  0x94  0x84  0xbd  0xc5  0x94  0x7b  0x8c  0x84  0x7b
+ ...
+```
 
-# Affinemap containing offset and scaling
-julia> geoarray.f
+##### CRS
+```julia
+geoarray.crs
+"PROJCS[\"NAD27 / UTM zone 11N\",GEOGCS[\"NAD27\",DATUM[\"North_American_Datum_1927\",SPHEROID[\"Clarke 1866\",6378206.4,294.9786982138982,AUTHORITY[\"EPSG\",\"7008\"]],AUTHORITY[\"EPSG\",\"6267\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4267\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-117],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AUTHORITY[\"EPSG\",\"26711\"]]"
+```
+
+##### Coordinate transformations
+```julia
+geoarray.f
 AffineMap([60.0 0.0; 0.0 -60.0], [440720.0, 3.75132e6])
 
-# WKT projection string
-julia> geoarray.crs
-"PROJCS[\"NAD27 / UTM zone 11N\",GEOGCS[\"NAD27\",DATUM[\"North_American_Datum_1927\",SPHEROID[\"Clarke 1866\",6378206.4,294.9786982138982,AUTHORITY[\"EPSG\",\"7008\"]],AUTHORITY[\"EPSG\",\"6267\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4267\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-117],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AUTHORITY[\"EPSG\",\"26711\"]]"
-
 # Find coordinates by index
-julia> coords(geoarray, [1,1])
+coords(geoarray, [1,1])
 2-element StaticArrays.SArray{Tuple{2},Float64,1,2}:
  440720.0
       3.75132e6
 
 # Find index by coordinates
-julia> indices(geoarray, [440720.0, 3.75132e6])
+indices(geoarray, [440720.0, 3.75132e6])
 2-element StaticArrays.SArray{Tuple{2},Int64,1,2}:
  1
  1
 
 # Find all coordinates
-julia> coords(geoarray)
+coords(geoarray)
 101×101 Array{StaticArrays.SArray{Tuple{2},Float64,1,2},2}:
  [440720.0, 3.75132e6]  [440720.0, 3.75126e6]  [440720.0, 3.7512e6] ...
  ...
 
-# Translate complete raster by x + 100
-julia> trans = Translation(100, 0)
-julia> compose!(ga, trans)
+# Move raster by x + 100
+trans = Translation(100, 0)
+compose!(geoarray, trans)
+```
 
-# Write a TIFF
-julia> ga = GeoArray(rand(100,200,3))
-julia> GeoArrays.write!("test.tif", ga)
+##### Plot the image
+```julia
+using Plots
+plot(geoarray)
+```
+![plot](docs/img/utm_small.png)
 
+##### Table conversion
+```julia
+using DataFrames
+DataFrame(geoarray)
+10000×3 DataFrame
+│ Row   │ x        │ y         │ bands  │
+│       │ Float64  │ Float64   │ Array… │
+├───────┼──────────┼───────────┼────────┤
+│ 1     │ 440720.0 │ 3.75132e6 │ [0x6b] │
+│ 2     │ 440780.0 │ 3.75132e6 │ [0x7b] │
+│ 3     │ 440840.0 │ 3.75132e6 │ [0x84] │
+│ 4     │ 440900.0 │ 3.75132e6 │ [0x73] │
+│ 5     │ 440960.0 │ 3.75132e6 │ [0x84] │
+│ 6     │ 441020.0 │ 3.75132e6 │ [0x84] │
+│ 7     │ 441080.0 │ 3.75132e6 │ [0x8c] │
+│ 8     │ 441140.0 │ 3.75132e6 │ [0x84] │
+...
+```
+
+##### Write support
+```julia
+geoarray = GeoArray(rand(100,200,3))
+GeoArrays.write!("test.tif", geoarray)
 ```

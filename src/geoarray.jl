@@ -10,6 +10,7 @@ Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{T}) where {T<:GeoArray} = IndexLinear()
 Base.getindex(ga::GeoArray, i::Int) = getindex(ga.A, i)
 Base.getindex(ga::GeoArray, I::Vararg{Int, 2}) = getindex(ga.A, I..., :)
+Base.getindex(ga::GeoArray, I::NTuple{2, Int}) = getindex(ga.A, I..., :)
 Base.getindex(ga::GeoArray, I::Vararg{Int, 3}) = getindex(ga.A, I...)
 Base.iterate(ga::GeoArray) = iterate(ga.A)
 Base.length(ga::GeoArray) = length(ga.A)
@@ -24,12 +25,14 @@ end
 function Base.show(ga::GeoArray)
     print("$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and WKT $(ga.crs)")
 end
+Base.display(ga::GeoArray) = show(ga)
 
 # Generate upper left coordinates for specic index
 function coords(ga::GeoArray, p::SVector{2, Int})
     ga.f(p.-1)
 end
 coords(ga::GeoArray, p::Vector{Int}) = coords(ga, SVector{2}(p))
+coords(ga::GeoArray, p::Tuple{Int, Int}) = coords(ga, SVector{2}(p))
 
 # Generate center coordinates for specific index
 function centercoords(ga::GeoArray, p::SVector{2, Int})
