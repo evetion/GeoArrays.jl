@@ -20,7 +20,6 @@ function Base.iterate(gai::GeoArrayIterator, element=1)
        return nothing
    end
    i = Tuple(CartesianIndices(size(gai.ga)[1:2])[element])
-   println("$i $element")
    x, y = coords(gai.ga, SVector(i))
    data = gai.ga[i]
    return ((x=x, y=y, data=data), element+1)
