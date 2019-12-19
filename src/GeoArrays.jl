@@ -25,6 +25,6 @@ export interpolate!
 
 export epsg!
 
-export -
+export -,+,*,/
 
 end
