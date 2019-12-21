@@ -4,11 +4,9 @@ Simple geographical raster interaction built on top of [ArchGDAL](https://github
 
 A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based on the axes and a CRS definition to interpret these coordinates into in the real world.
 
-*this is a work in progress*
-
 ## Installation
 ```julia
-(v1.1) pkg> add https://github.com/evetion/GeoArrays.jl.git
+(v1.3 pkg> add GeoArrays
 ```
 
 ## Examples
@@ -56,4 +54,9 @@ julia> compose!(ga, trans)
 julia> ga = GeoArray(rand(100,200,3))
 julia> GeoArrays.write!("test.tif", ga)
 
+# Math with GeoArrays (- + * /)
+julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
+5×5×1 GeoArray{Float64}:
+[:, :, 1] =
+ 0.417168   0.253739  0.132952   0.0702787  0.34263
 ```
