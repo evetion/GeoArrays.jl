@@ -11,6 +11,7 @@ include("io.jl")
 include("utils.jl")
 include("interpolate.jl")
 include("crs.jl")
+include("operations.jl")
 
 export GeoArray
 
@@ -23,5 +24,7 @@ export compose!
 export interpolate!
 
 export epsg!
+
+export -,+,*,/
 
 end

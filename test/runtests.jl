@@ -8,5 +8,6 @@ using Test
         include("test_io.jl")
         include("test_interpolate.jl")
         include("test_crs.jl")
+        include("test_operations.jl")
     end
 end
