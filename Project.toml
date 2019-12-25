@@ -11,9 +11,9 @@ GeoStatsBase = "323cb8eb-fbf6-51c0-afd0-f8fba70507b2"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-ArchGDAL = "0.3"
+ArchGDAL = "^0.3.0"
 CoordinateTransformations = "0.5"
-GDAL = "1.0"
+GDAL = "^1.0.2"
 GeoStatsBase = "0.5, 0.6, 0.7"
 StaticArrays = "0.12"
 julia = "1"

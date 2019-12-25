@@ -34,7 +34,6 @@ function str2wkt(crs_string::AbstractString)
     else
         # Fallback method to validate string
         wkt =  wkt2wkt(crs_string)
-        length(wkt) == 0 && throw(ArgumentError("Invalid projection."))
         return wkt
     end
 end

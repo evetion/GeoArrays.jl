@@ -1,3 +1,5 @@
+import GDAL
+
 @testset "CRS" begin
 
     epsg_nl_code = 28992
@@ -40,7 +42,7 @@
         @test result == merc_wkt
 
         # Invalid string
-        @test_throws ArgumentError GeoArrays.str2wkt("INVALID")
+        @test_throws GDAL.GDALError GeoArrays.str2wkt("INVALID")
 
     end
 
