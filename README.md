@@ -6,7 +6,7 @@ A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based o
 
 ## Installation
 ```julia
-(v1.3 pkg> add GeoArrays
+(v1.3) pkg> add GeoArrays
 ```
 
 ## Examples
@@ -15,7 +15,7 @@ A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based o
 julia> using GeoArrays
 
 # Read TIF file
-julia> fn = joinpath(dirname(pathof(GeoArrays)), "..", "test/data/utmsmall.tif")
+julia> fn = download("https://github.com/yeesian/ArchGDALDatasets/blob/master/data/utmsmall.tif?raw=true")
 julia> geoarray = GeoArrays.read(fn)
 100×100×1 GeoArray{UInt8}:
 ...
