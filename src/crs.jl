@@ -1,26 +1,26 @@
 "Get the WKT of an Integer EPSG code"
 function epsg2wkt(epsgcode::Int)
-    srs = GDAL.newspatialreference(C_NULL)
-    GDAL.importfromepsg(srs, epsgcode)
+    srs = GDAL.osrnewspatialreference(C_NULL)
+    GDAL.osrimportfromepsg(srs, epsgcode)
     wkt_ptr = Ref(Cstring(C_NULL))
-    GDAL.exporttowkt(srs, wkt_ptr)
+    GDAL.osrexporttowkt(srs, wkt_ptr)
     return unsafe_string(wkt_ptr[])
 end
 
 "Get the WKT of an Proj string"
 function proj2wkt(projstring::AbstractString)
-    srs = GDAL.newspatialreference(C_NULL)
-    GDAL.importfromproj4(srs, projstring)
+    srs = GDAL.osrnewspatialreference(C_NULL)
+    GDAL.osrimportfromproj4(srs, projstring)
     wkt_ptr = Ref(Cstring(C_NULL))
-    GDAL.exporttowkt(srs, wkt_ptr)
+    GDAL.osrexporttowkt(srs, wkt_ptr)
     return unsafe_string(wkt_ptr[])
 end
 
 function wkt2wkt(wktstring::AbstractString)
-    srs = GDAL.newspatialreference(C_NULL)
-    GDAL.importfromwkt(srs, [wktstring])
+    srs = GDAL.osrnewspatialreference(C_NULL)
+    GDAL.osrimportfromwkt(srs, [wktstring])
     wkt_ptr = Ref(Cstring(C_NULL))
-    GDAL.exporttowkt(srs, wkt_ptr)
+    GDAL.osrexporttowkt(srs, wkt_ptr)
     return unsafe_string(wkt_ptr[])
 end
 
@@ -34,7 +34,6 @@ function str2wkt(crs_string::AbstractString)
     else
         # Fallback method to validate string
         wkt =  wkt2wkt(crs_string)
-        length(wkt) == 0 && throw(ArgumentError("Invalid projection."))
         return wkt
     end
 end
