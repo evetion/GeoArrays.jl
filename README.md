@@ -68,9 +68,13 @@ julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
 ```
 #### Plotting
 ```julia
+# Plot a GeoArray
 julia> using Plots
 julia> fn = download("https://github.com/yeesian/ArchGDALDatasets/blob/master/pyrasterio/RGB.byte.tif?raw=true")
 julia> ga = GeoArrays.read(fn)
 julia> plot(ga)
+
+# or plot a band other than the first one
+julia> plot(ga, band=2)
 ```
 ![example plot](docs/img/RGB.byte.png)
