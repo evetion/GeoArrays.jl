@@ -10,7 +10,7 @@ A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based o
 ```
 
 ## Examples
-
+#### Basic Usage
 ```julia
 julia> using GeoArrays
 
@@ -28,6 +28,13 @@ AffineMap([60.0 0.0; 0.0 -60.0], [440720.0, 3.75132e6])
 julia> geoarray.crs
 "PROJCS[\"NAD27 / UTM zone 11N\",GEOGCS[\"NAD27\",DATUM[\"North_American_Datum_1927\",SPHEROID[\"Clarke 1866\",6378206.4,294.9786982138982,AUTHORITY[\"EPSG\",\"7008\"]],AUTHORITY[\"EPSG\",\"6267\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433],AUTHORITY[\"EPSG\",\"4267\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-117],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AUTHORITY[\"EPSG\",\"26711\"]]"
 
+# Create and write a TIFF
+julia> ga = GeoArray(rand(100,200,3))
+julia> GeoArrays.write!("test.tif", ga)
+```
+
+#### Using coordinates
+```julia
 # Find coordinates by index
 julia> coords(geoarray, [1,1])
 2-element StaticArrays.SArray{Tuple{2},Float64,1,2}:
@@ -45,14 +52,13 @@ julia> coords(geoarray)
 101×101 Array{StaticArrays.SArray{Tuple{2},Float64,1,2},2}:
  [440720.0, 3.75132e6]  [440720.0, 3.75126e6]  [440720.0, 3.7512e6] ...
  ...
-
+```
+#### Manipulation
+```julia
 # Translate complete raster by x + 100
 julia> trans = Translation(100, 0)
 julia> compose!(ga, trans)
 
-# Write a TIFF
-julia> ga = GeoArray(rand(100,200,3))
-julia> GeoArrays.write!("test.tif", ga)
 
 # Math with GeoArrays (- + * /)
 julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
@@ -60,3 +66,11 @@ julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
 [:, :, 1] =
  0.417168   0.253739  0.132952   0.0702787  0.34263
 ```
+#### Plotting
+```julia
+julia> using Plots
+julia> fn = download("https://github.com/yeesian/ArchGDALDatasets/blob/master/pyrasterio/RGB.byte.tif?raw=true")
+julia> ga = GeoArrays.read(fn)
+julia> plot(ga)
+```
+![example plot](docs/img/RGB.byte.png)

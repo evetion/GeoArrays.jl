@@ -12,6 +12,7 @@ include("utils.jl")
 include("interpolate.jl")
 include("crs.jl")
 include("operations.jl")
+include("plot.jl")
 
 export GeoArray
 
