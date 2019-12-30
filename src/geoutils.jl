@@ -47,6 +47,20 @@ function bbox!(ga::GeoArray, bbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y),T
     nothing
 end
 
+"Generate bounding boxes for GeoArray cells."
+function bboxes(ga::GeoArray)
+    c = coords(ga)::Array{StaticArrays.SArray{Tuple{2},Float64,1,2},2}
+    m, n = size(c)
+    cellbounds = Matrix{NamedTuple}(undef, (m-1, n-1))
+    for j = 1:n-1, i = 1:m-1
+        v = c[i:i+1, j:j+1]
+        minx, maxx = extrema(first.(v))::Tuple{Float64, Float64}
+        miny, maxy = extrema(last.(v))::Tuple{Float64, Float64}
+        cellbounds[i, j] = (min_x=minx, max_x=maxx, min_y=miny, max_y=maxy)
+    end
+    cellbounds
+end
+
 # Extend CoordinateTransformations
 CoordinateTransformations.compose(ga::GeoArray, t2::AffineMap) = CoordinateTransformations.compose(ga.f, t2)
 CoordinateTransformations.compose(ga::GeoArray, t2::LinearMap) = CoordinateTransformations.compose(ga.f, t2)

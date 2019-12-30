@@ -20,6 +20,9 @@ export coords
 export centercoords
 export indices
 
+export bbox
+export bboxes
+
 export compose!
 
 export interpolate!
