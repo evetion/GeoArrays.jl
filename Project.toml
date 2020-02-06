@@ -16,7 +16,7 @@ ArchGDAL = "^0.3.0"
 CoordinateTransformations = "0.5"
 GDAL = "^1.0.2"
 GeoStatsBase = "0.5, 0.6, 0.7"
-RecipesBase = "0.7"
+RecipesBase = "0.7, 0.8"
 StaticArrays = "0.12"
 julia = "1"
 
