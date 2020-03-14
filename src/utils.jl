@@ -1,5 +1,7 @@
 const shortnames = Dict(
-    (".tif", ".tiff") => "GTiff"
+    (".tif", ".tiff") => "GTiff",
+    (".img",) => "HFA",
+    (".xyz",) => "XYZ",
 )
 
 function find_shortname(fn::AbstractString)
@@ -23,12 +25,12 @@ const GMF = Dict(
 function mask_flags(flags::Int32)
     (f.first for f in GMF if (flags & f.second) == f.second)
 end
-mask_flags(band::ArchGDAL.AbstractRasterBand) = mask_flags(GDAL.gdalgetmaskflags(Ptr{Nothing}(band.ptr)))
+mask_flags(band::ArchGDAL.AbstractRasterBand) = mask_flags(ArchGDAL.GDAL.gdalgetmaskflags(Ptr{Nothing}(band.ptr)))
 
 """Retrieves nodata value from RasterBand."""
 function get_nodata(band::Ptr{Nothing})
     succes_value = Int32(0)
-    nodata = GDAL.gdalgetrasternodatavalue(band, Ref(succes_value))
+    nodata = ArchGDAL.GDAL.gdalgetrasternodatavalue(band, Ref(succes_value))
     if succes_value == 0
         return nodata
     else

@@ -1,11 +1,11 @@
-const gdt_lookup = Dict{DataType, GDAL.GDALDataType}(
-    UInt8 => GDAL.GDT_Byte,
-    UInt16 => GDAL.GDT_UInt16,
-    Int16 => GDAL.GDT_Int16,
-    UInt32 => GDAL.GDT_UInt32,
-    Int32 => GDAL.GDT_Int32,
-    Float32 => GDAL.GDT_Float32,
-    Float64 => GDAL.GDT_Float64
+const gdt_lookup = Dict{DataType, ArchGDAL.GDAL.GDALDataType}(
+    UInt8 => ArchGDAL.GDAL.GDT_Byte,
+    UInt16 => ArchGDAL.GDAL.GDT_UInt16,
+    Int16 => ArchGDAL.GDAL.GDT_Int16,
+    UInt32 => ArchGDAL.GDAL.GDT_UInt32,
+    Int32 => ArchGDAL.GDAL.GDT_Int32,
+    Float32 => ArchGDAL.GDAL.GDT_Float32,
+    Float64 => ArchGDAL.GDAL.GDT_Float64
 )
 
 function read(fn::AbstractString)
@@ -57,8 +57,7 @@ function read(fn::AbstractString)
     GeoArray(A, am, wkt)
 end
 
-function write!(fn::AbstractString, ga::GeoArray, nodata=nothing)
-    shortname = find_shortname(fn)
+function write!(fn::AbstractString, ga::GeoArray, nodata=nothing, shortname=find_shortname(fn))
     options = String[]
     w, h, b = size(ga)
     dtype = eltype(ga)
@@ -82,13 +81,14 @@ function write!(fn::AbstractString, ga::GeoArray, nodata=nothing)
         for i=1:b
             band = ArchGDAL.getband(dataset, i)
             ArchGDAL.write!(band, data[:,:,i])
-            use_nodata && GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
+            use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
         end
 
         # Set geotransform and crs
         gt = affine_to_geotransform(ga.f)
-        GDAL.gdalsetgeotransform(dataset.ptr, gt)
-        GDAL.gdalsetprojection(dataset.ptr, ga.crs)
+        ArchGDAL.GDAL.gdalsetgeotransform(dataset.ptr, gt)
+        ArchGDAL.GDAL.gdalsetprojection(dataset.ptr, ga.crs)
 
     end
+    fn
 end

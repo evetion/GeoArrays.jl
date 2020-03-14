@@ -1,26 +1,26 @@
 "Get the WKT of an Integer EPSG code"
 function epsg2wkt(epsgcode::Int)
-    srs = GDAL.osrnewspatialreference(C_NULL)
-    GDAL.osrimportfromepsg(srs, epsgcode)
+    srs = ArchGDAL.GDAL.osrnewspatialreference(C_NULL)
+    ArchGDAL.GDAL.osrimportfromepsg(srs, epsgcode)
     wkt_ptr = Ref(Cstring(C_NULL))
-    GDAL.osrexporttowkt(srs, wkt_ptr)
+    ArchGDAL.GDAL.osrexporttowkt(srs, wkt_ptr)
     return unsafe_string(wkt_ptr[])
 end
 
 "Get the WKT of an Proj string"
 function proj2wkt(projstring::AbstractString)
-    srs = GDAL.osrnewspatialreference(C_NULL)
-    GDAL.osrimportfromproj4(srs, projstring)
+    srs = ArchGDAL.GDAL.osrnewspatialreference(C_NULL)
+    ArchGDAL.GDAL.osrimportfromproj4(srs, projstring)
     wkt_ptr = Ref(Cstring(C_NULL))
-    GDAL.osrexporttowkt(srs, wkt_ptr)
+    ArchGDAL.GDAL.osrexporttowkt(srs, wkt_ptr)
     return unsafe_string(wkt_ptr[])
 end
 
 function wkt2wkt(wktstring::AbstractString)
-    srs = GDAL.osrnewspatialreference(C_NULL)
-    GDAL.osrimportfromwkt(srs, [wktstring])
+    srs = ArchGDAL.GDAL.osrnewspatialreference(C_NULL)
+    ArchGDAL.GDAL.osrimportfromwkt(srs, [wktstring])
     wkt_ptr = Ref(Cstring(C_NULL))
-    GDAL.osrexporttowkt(srs, wkt_ptr)
+    ArchGDAL.GDAL.osrexporttowkt(srs, wkt_ptr)
     return unsafe_string(wkt_ptr[])
 end
 

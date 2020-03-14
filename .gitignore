@@ -3,10 +3,5 @@
 *.jl.mem
 docs/build
 
-test/data/
-test/gdalworkshop/
-test/ospy/
-test/pyrasterio/
-test/spatialite/
-test/test_nodata.tif
-test/test.tif
+test/*
+!test/*.jl

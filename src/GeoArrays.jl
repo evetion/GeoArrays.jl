@@ -1,6 +1,5 @@
 module GeoArrays
 
-using GDAL
 using ArchGDAL
 using CoordinateTransformations
 using StaticArrays
