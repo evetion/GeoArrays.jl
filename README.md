@@ -66,6 +66,27 @@ julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
 [:, :, 1] =
  0.417168   0.253739  0.132952   0.0702787  0.34263
 ```
+
+#### Interpolation
+```julia
+julia> using InverseDistanceWeighting  # or any solver from the GeoStats ecosystem
+julia> ga = GeoArray(Array{Union{Missing, Float64}}(rand(5, 1)))
+julia> ga.A[2,1] = missing
+[:, :, 1] =
+ 0.6760718768442127
+  missing
+ 0.852882193026649
+ 0.7137410453351622
+ 0.5949409082233854
+julia> GeoArrays.interpolate!(ga, InvDistWeight(:z => (neighbors=3,)))
+[:, :, 1] =
+ 0.6760718768442127
+ 0.7543298370153771
+ 0.852882193026649
+ 0.7137410453351622
+ 0.5949409082233854
+```
+
 #### Plotting
 ```julia
 # Plot a GeoArray
