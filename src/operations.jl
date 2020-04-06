@@ -1,27 +1,25 @@
+"""Check whether two `GeoArrays`s `a` and `b` are
+geographically equal, although not necessarily in content."""
+function equals(a::GeoArray, b::GeoArray)
+    size(a) == size(b) && a.f == b.f && a.crs == b.crs
+end
+
 function Base.:-(a::GeoArray, b::GeoArray)
-    size(a) == size(b) || throw(DimensionMismatch("The sizes of a and b do not match."))
-    a.f == b.f || error("The affine information does not match")
-    a.crs == b.crs || error("The crs information does not match")
+    equals(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
     GeoArray(a.A .- b.A, a.f, a.crs)
 end
 
 function Base.:+(a::GeoArray, b::GeoArray)
-    size(a) == size(b) || throw(DimensionMismatch("The sizes of a and b do not match."))
-    a.f == b.f || error("The affine information does not match")
-    a.crs == b.crs || error("The crs information does not match")
+    equals(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
     GeoArray(a.A .+ b.A, a.f, a.crs)
 end
 
 function Base.:*(a::GeoArray, b::GeoArray)
-    size(a) == size(b) || throw(DimensionMismatch("The sizes of a and b do not match."))
-    a.f == b.f || error("The affine information does not match")
-    a.crs == b.crs || error("The crs information does not match")
+    equals(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
     GeoArray(a.A .* b.A, a.f, a.crs)
 end
 
 function Base.:/(a::GeoArray, b::GeoArray)
-    size(a) == size(b) || throw(DimensionMismatch("The sizes of a and b do not match."))
-    a.f == b.f || error("The affine information does not match")
-    a.crs == b.crs || error("The crs information does not match")
+    equals(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
     GeoArray(a.A ./ b.A, a.f, a.crs)
 end
