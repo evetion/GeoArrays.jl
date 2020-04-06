@@ -1,4 +1,4 @@
-using GeoStats
+using KrigingEstimators
 using StaticArrays
 
 @testset "Interpolating rasters" begin
