@@ -13,7 +13,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 ArchGDAL = "^0.3.0"
 CoordinateTransformations = "0.5"
-GeoStatsBase = "0.8"
+GeoStatsBase = "0.8.3"
 KrigingEstimators = "0.3.4"
 RecipesBase = "0.7, 0.8"
 StaticArrays = "0.12"
