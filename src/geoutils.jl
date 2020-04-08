@@ -21,14 +21,14 @@ geotransform_to_affine(A::Vector{Float64}) = geotransform_to_affine(SVector{6}(A
 function affine_to_geotransform(am::AffineMap{SArray{Tuple{2,2},Float64,2,4},SArray{Tuple{2},Float64,1,2}})
     l = am.linear
     t = am.translation
-    [t[1], l[1], l[2], t[2], l[3], l[4]]
+    [t[1], l[1], l[3], t[2], l[2], l[4]]
 end
 
 function affine_to_geotransform(am::AffineMap{Array{Float64,2},Array{Float64,1}})
     l = am.linear
     t = am.translation
     (length(l) != 4 || length(t) != 2) || error("AffineMap has wrong dimensions.")
-    [t[1], l[1], l[2], t[2], l[3], l[4]]
+    [t[1], l[1], l[3], t[2], l[2], l[4]]
 end
 
 """Check wether the AffineMap of a GeoArray contains rotations."""
@@ -83,12 +83,11 @@ function flipud!(ga::GeoArray)
     ga.A = reverse(ga.A, dims=2)
 
     # Find new corner coordinates
-    _, uy = ga.f(SVector{2}([0, size(ga)[2]]))
-    _, ux = ga.f(SVector{2}([size(ga)[1], 0]))
+    ux, uy = ga.f(SVector{2}([0, size(ga)[2]]))
 
     # Define y mirror and compose
     lm = LinearMap(SMatrix{2,2}([1.0 0.0; 0.0 -1.0]))
-    am = compose(lm, ga.f)  # AffineMap
+    am = compose(ga.f, lm)  # AffineMap
     translate = SVector{2}([ux, uy])
     f = AffineMap(am.linear, translate)
 
