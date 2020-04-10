@@ -31,9 +31,9 @@ using CoordinateTransformations
     @testset "operations" begin
     g = GeoArray(rand(5, 5))
     h = GeoArray(rand(5, 5))
-    @test typeof(g - h) == GeoArray{Float64}
-    @test typeof(g + h) == GeoArray{Float64}
-    @test typeof(g * h) == GeoArray{Float64}
-    @test typeof(g / h) == GeoArray{Float64}
+    @test typeof(g - h) == GeoArray{Float64,2}
+    @test typeof(g + h) == GeoArray{Float64,2}
+    @test typeof(g * h) == GeoArray{Float64,2}
+    @test typeof(g / h) == GeoArray{Float64,2}
     end
 end
