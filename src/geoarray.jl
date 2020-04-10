@@ -5,6 +5,26 @@ mutable struct GeoArray{T<:Union{Real, Union{Missing, Real}}} <: AbstractArray{T
 end
 GeoArray(A::AbstractArray{T, 3} where T<:Union{Real, Union{Missing, Real}}) = GeoArray(A, geotransform_to_affine(SVector(0.,1.,0.,0.,0.,1.)), "")
 GeoArray(A::AbstractArray{T, 2} where T<:Union{Real, Union{Missing, Real}}) = GeoArray(reshape(A, size(A)..., 1), geotransform_to_affine(SVector(0.,1.,0.,0.,0.,1.)), "")
+function GeoArray(A::AbstractArray{<:Union{Real, Union{Missing, Real}}, 2}, x::AbstractRange, y::AbstractRange, crs="")
+    # this assumes that x,y are center-coordinates
+    size(A)!=(length(x), length(y)) && error("Size of matrix $(size(A)) does not match size of (x,y): $((length(x),length(y)))" )
+    dx, dy = step(x), step(y)
+    GeoArray(reshape(A, size(A)..., 1),
+             AffineMap(SMatrix{2,2}(dx,0,0,dy),
+                       SVector(x[1]-dx/2, y[1]-dy/2)),
+             crs)
+end
+function GeoArray(A::AbstractArray{<:Union{Real, Union{Missing, Real}}, 3}, x::AbstractRange, y::AbstractRange, z::AbstractRange, crs="")
+    # this assumes that x,y,z are center-coordinates
+    size(A)!=(length(x), length(y), length(z)) && error("Size of input $(size(A)) does not match size of (x,y,z): $((length(x),length(y),length(z)))" )
+    dx, dy, dz = step(x), step(y), step(z)
+    GeoArray(A,
+             AffineMap(SMatrix{3,3}(dx,0,0,0,dy,0,0,0,dz),
+                       SVector(x[1]-dx/2, y[1]-dy/2, z[1]-dz/2)),
+             crs)
+end
+
+
 
 Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{T}) where {T<:GeoArray} = IndexLinear()
