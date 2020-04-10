@@ -5,6 +5,16 @@ mutable struct GeoArray{T<:Union{Real, Union{Missing, Real}}} <: AbstractArray{T
 end
 GeoArray(A::AbstractArray{T, 3} where T<:Union{Real, Union{Missing, Real}}) = GeoArray(A, geotransform_to_affine(SVector(0.,1.,0.,0.,0.,1.)), "")
 GeoArray(A::AbstractArray{T, 2} where T<:Union{Real, Union{Missing, Real}}) = GeoArray(reshape(A, size(A)..., 1), geotransform_to_affine(SVector(0.,1.,0.,0.,0.,1.)), "")
+function GeoArray(A::AbstractArray{<:Union{Real, Union{Missing, Real}}}, x::AbstractRange, y::AbstractRange, crs="")
+    # this assumes that x,y are center-coordinates
+    (size(A,1),size(A,2))!=(length(x), length(y)) && error("Size of matrix $(size(A)) does not match size of (x,y): $((length(x),length(y)))" )
+    dx, dy = step(x), step(y)
+    A = ndims(A)==2 ? reshape(A, size(A)..., 1) : A
+    return GeoArray(A,
+                    AffineMap(SMatrix{2,2}(dx,0,0,dy),
+                              SVector(x[1]-dx/2, y[1]-dy/2)),
+                    crs)
+end
 
 Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{T}) where {T<:GeoArray} = IndexLinear()

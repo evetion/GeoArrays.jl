@@ -16,3 +16,15 @@ using CoordinateTransformations
     @test_throws ErrorException coords(rot, :x)
     @test_throws ErrorException coords(rot, :y)
 end
+
+@testset "GeoArray constructors" begin
+    x,y = range(4, stop=8.0, length=10), range(0,stop=1,length=9)
+    ga2 = GeoArray(rand(10,9), x, y)
+    ga3 = GeoArray(rand(10,9,8), x, y)
+    for i=1:length(x), j=1:length(y)
+        @test GeoArrays.centercoords(ga2, [i,j]) ≈ [x[i],y[j]]
+    end
+    for i=1:length(x), j=1:length(y)
+        @test GeoArrays.centercoords(ga3, [i,j]) ≈ [x[i],y[j]]
+    end
+end
