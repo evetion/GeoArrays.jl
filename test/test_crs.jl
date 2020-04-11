@@ -1,4 +1,6 @@
 import ArchGDAL
+import GeoFormatTypes
+const GFT = GeoFormatTypes
 
 @testset "CRS" begin
 
@@ -21,10 +23,10 @@ import ArchGDAL
     @testset "Set CRS on GeoArray" begin
         ga = GeoArray(rand(10,10))
         epsg!(ga, 28992)
-        @test ga.crs == epsg_nl_wkt
+        @test GFT.val(ga.crs) == epsg_nl_wkt
 
         epsg!(ga, "EPSG:28992")
-        @test ga.crs == epsg_nl_wkt
+        @test GFT.val(ga.crs) == epsg_nl_wkt
     end
 
     @testset "Proj string" begin
@@ -57,7 +59,7 @@ import ArchGDAL
 
     @testset "Check projection of file" begin
         ga = GeoArrays.read("gdalworkshop/world.tif")
-        @test ga.crs == wgs84_wkt
+        @test GFT.val(ga.crs) == wgs84_wkt
     end
 
 end

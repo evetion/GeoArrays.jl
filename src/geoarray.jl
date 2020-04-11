@@ -1,10 +1,11 @@
 mutable struct GeoArray{T<:Union{Real, Union{Missing, Real}}} <: AbstractArray{T, 3}
     A::AbstractArray{T, 3}
     f::AffineMap
-    crs::AbstractString
+    crs::WellKnownText{GeoFormatTypes.CRS, <:String}
 end
 GeoArray(A::AbstractArray{T, 3} where T<:Union{Real, Union{Missing, Real}}) = GeoArray(A, geotransform_to_affine(SVector(0.,1.,0.,0.,0.,1.)), "")
 GeoArray(A::AbstractArray{T, 2} where T<:Union{Real, Union{Missing, Real}}) = GeoArray(reshape(A, size(A)..., 1), geotransform_to_affine(SVector(0.,1.,0.,0.,0.,1.)), "")
+GeoArray(A::AbstractArray{T,3} where T<:Union{Real, Union{Missing, Real}}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs))
 
 Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{T}) where {T<:GeoArray} = IndexLinear()
