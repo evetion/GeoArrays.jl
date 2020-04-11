@@ -73,3 +73,35 @@ function indexmissing(ga::GeoArray)
     (ui, uj) = size(ga)[1:2]
     ci = [[i,j] for i in 1:ui, j in 1:uj if ismissing(ga.A[i, j])]
 end
+
+# Generate coordinates for one dimension of a GeoArray
+function coords(ga::GeoArray, dim::Symbol)
+    if is_rotated(ga)
+        error("This method cannot be used for a rotated GeoArray")
+    end
+    if dim==:x
+        ui = size(ga,1)
+        ci = [coords(ga, SVector{2}(i,1))[1] for i in 1:ui+1]
+    elseif dim==:y
+        uj = size(ga,2)
+        ci = [coords(ga, SVector{2}(1,j))[2] for j in 1:uj+1]
+    else
+        error("Use :x or :y as second argument")
+    end
+    return ci
+end
+function centercoords(ga::GeoArray, dim::Symbol)
+    if is_rotated(ga)
+        error("This method cannot be used for a rotated GeoArray")
+    end
+    if dim==:x
+        ui = size(ga,1)
+        ci = [centercoords(ga, SVector{2}(i,1))[1] for i in 1:ui]
+    elseif dim==:y
+        uj = size(ga,2)
+        ci = [centercoords(ga, SVector{2}(1,j))[2] for j in 1:uj]
+    else
+        error("Use :x or :y as second argument")
+    end
+    return ci
+end
