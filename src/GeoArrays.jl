@@ -1,8 +1,10 @@
 module GeoArrays
 
+using GeoFormatTypes
 using ArchGDAL
 using CoordinateTransformations
 using StaticArrays
+const GFT = GeoFormatTypes
 
 include("geoarray.jl")
 include("geoutils.jl")

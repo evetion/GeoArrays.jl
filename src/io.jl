@@ -87,7 +87,7 @@ function write!(fn::AbstractString, ga::GeoArray, nodata=nothing, shortname=find
         # Set geotransform and crs
         gt = affine_to_geotransform(ga.f)
         ArchGDAL.GDAL.gdalsetgeotransform(dataset.ptr, gt)
-        ArchGDAL.GDAL.gdalsetprojection(dataset.ptr, ga.crs)
+        ArchGDAL.GDAL.gdalsetprojection(dataset.ptr, GFT.val(ga.crs))
 
     end
     fn
