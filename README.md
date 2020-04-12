@@ -31,7 +31,7 @@ GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS,String}(GeoFormatTypes.CRS(), "P
 
 # Create, reference and write a TIFF
 julia> ga = GeoArray(rand(100,200))
-julia> bbox!(ga, (xmin=2, ymin=51, xmax=5, ymax=54))  # roughly the Netherlands
+julia> bbox!(ga, (min_x=2., min_y=51., max_x=5., max_y=54.))  # roughly the Netherlands
 julia> epsg!(ga, 4326)  # in WGS84
 julia> GeoArrays.write!("test.tif", ga)
 ```
