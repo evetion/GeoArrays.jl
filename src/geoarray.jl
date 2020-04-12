@@ -4,8 +4,8 @@ mutable struct GeoArray{T<:Union{Real, Union{Missing, Real}}} <: AbstractArray{T
     crs::WellKnownText{GeoFormatTypes.CRS, <:String}
 end
 GeoArray(A::AbstractArray{T, 3} where T<:Union{Real, Union{Missing, Real}}) = GeoArray(A, geotransform_to_affine(SVector(0.,1.,0.,0.,0.,1.)), "")
-GeoArray(A::AbstractArray{T, 2} where T<:Union{Real, Union{Missing, Real}}) = GeoArray(reshape(A, size(A)..., 1), geotransform_to_affine(SVector(0.,1.,0.,0.,0.,1.)), "")
-GeoArray(A::AbstractArray{T,3} where T<:Union{Real, Union{Missing, Real}}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs))
+GeoArray(A::AbstractArray{T, 3} where T<:Union{Real, Union{Missing, Real}}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs))
+GeoArray(A::AbstractArray{T, 2} where T<:Union{Real, Union{Missing, Real}}, args...) = GeoArray(reshape(A, size(A)..., 1), args...)
 
 Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{T}) where {T<:GeoArray} = IndexLinear()
@@ -19,11 +19,11 @@ Base.parent(ga::GeoArray) = ga.A
 # Base.convert(::Type{Array{T, 3}}, A::GeoArray{T}) where {T} = convert(Array{T,3}, ga.A)
 Base.eltype(::Type{GeoArray{T}}) where {T} = T
 
+Base.show(io::IO, ::MIME"text/plain", ga::GeoArray) = show(io, ga)
 function Base.show(io::IO, ga::GeoArray)
-    print(io, "$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and WKT $(ga.crs)")
-end
-function Base.show(ga::GeoArray)
-    print("$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and WKT $(ga.crs)")
+    crs = GeoFormatTypes.val(ga.crs)
+    wkt = length(crs) == 0 ? "undefined CRS" : "CRS $crs"
+    print(io, "$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and $(wkt)")
 end
 
 # Generate upper left coordinates for specic index

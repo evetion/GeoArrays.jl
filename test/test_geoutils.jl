@@ -1,7 +1,16 @@
+const tbbox = (min_x = 440720.0, min_y = 3.74532e6, max_x = 446720.0, max_y = 3.75132e6)
+
 @testset "GeoUtils" begin
     @testset "bbox" begin
         ga = GeoArrays.read("data/utmsmall.tif")
-        @test GeoArrays.bbox(ga) == (min_x = 440720.0, min_y = 3.74532e6, max_x = 446720.0, max_y = 3.75132e6)
+        @test GeoArrays.bbox(ga) == tbbox
+    end
+
+    @testset "bbox!" begin
+        ga = GeoArrays.read("data/utmsmall.tif")
+        @test GeoArrays.bbox(ga) == tbbox
+        GeoArrays.bbox!(ga, GeoArrays.bbox(ga))
+        @test GeoArrays.bbox(ga) == tbbox
     end
 
     @testset "flip upside down" begin
@@ -10,7 +19,7 @@
         @test ga == ga_identical
         GeoArrays.flipud!(ga)
         @test ga != ga_identical
-        @test GeoArrays.bbox(ga) == (min_x = 440720.0, min_y = 3.74532e6, max_x = 446720.0, max_y = 3.75132e6)
+        @test GeoArrays.bbox(ga) == tbbox
         GeoArrays.flipud!(ga)
         @test ga == ga_identical
     end
