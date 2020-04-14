@@ -42,10 +42,11 @@ function bbox(ga::GeoArray)
     (min_x=min(ax, bx), min_y=min(ay, by), max_x=max(ax, bx), max_y=max(ay, by))
 end
 
-function unitrange_to_affine(x::AbstractUnitRange, y::AbstractUnitRange)
+function unitrange_to_affine(x::StepRangeLen, y::StepRangeLen)
+    δx, δy = step(x), step(y)
     AffineMap(
-        SMatrix{2,2}(x.step, 0, 0, y.step),
-        SVector(x[1], y[1])
+        SMatrix{2,2}(δx, 0, 0, δy),
+        SVector(x[1] - δx/2, y[1] - δy/2)
     )
 end
 
