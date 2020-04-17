@@ -4,8 +4,14 @@ mutable struct GeoArray{T<:Union{Real, Union{Missing, Real}}} <: AbstractArray{T
     crs::WellKnownText{GeoFormatTypes.CRS, <:String}
 end
 GeoArray(A::AbstractArray{T, 3} where T<:Union{Real, Union{Missing, Real}}) = GeoArray(A, geotransform_to_affine(SVector(0.,1.,0.,0.,0.,1.)), "")
-GeoArray(A::AbstractArray{T, 2} where T<:Union{Real, Union{Missing, Real}}) = GeoArray(reshape(A, size(A)..., 1), geotransform_to_affine(SVector(0.,1.,0.,0.,0.,1.)), "")
-GeoArray(A::AbstractArray{T,3} where T<:Union{Real, Union{Missing, Real}}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs))
+GeoArray(A::AbstractArray{T, 3} where T<:Union{Real, Union{Missing, Real}}, f::AffineMap) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), ""))
+GeoArray(A::AbstractArray{T, 3} where T<:Union{Real, Union{Missing, Real}}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs))
+GeoArray(A::AbstractArray{T, 2} where T<:Union{Real, Union{Missing, Real}}, args...) = GeoArray(reshape(A, size(A)..., 1), args...)
+function GeoArray(A::AbstractArray{T, 3} where T<:Union{Real, Union{Missing, Real}}, x::AbstractRange, y::AbstractRange, args...)
+    size(A)[1:2] != (length(x), length(y)) && error("Size of `GeoArray` $(size(A)) does not match size of (x,y): $((length(x),length(y))). Note that this function takes *center coordinates*.")
+    f = unitrange_to_affine(x, y)
+    GeoArray(A, f, args...)
+end
 
 Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{T}) where {T<:GeoArray} = IndexLinear()
@@ -19,11 +25,11 @@ Base.parent(ga::GeoArray) = ga.A
 # Base.convert(::Type{Array{T, 3}}, A::GeoArray{T}) where {T} = convert(Array{T,3}, ga.A)
 Base.eltype(::Type{GeoArray{T}}) where {T} = T
 
+Base.show(io::IO, ::MIME"text/plain", ga::GeoArray) = show(io, ga)
 function Base.show(io::IO, ga::GeoArray)
-    print(io, "$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and WKT $(ga.crs)")
-end
-function Base.show(ga::GeoArray)
-    print("$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and WKT $(ga.crs)")
+    crs = GeoFormatTypes.val(ga.crs)
+    wkt = length(crs) == 0 ? "undefined CRS" : "CRS $crs"
+    print(io, "$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and $(wkt)")
 end
 
 # Generate upper left coordinates for specic index
@@ -105,4 +111,12 @@ function centercoords(ga::GeoArray, dim::Symbol)
         error("Use :x or :y as second argument")
     end
     return ci
+end
+
+
+"""Set AffineMap of `GeoArray` by specifying the *center coordinates* for each x, y dimension by a `UnitRange`."""
+function centercoords!(ga, x::AbstractUnitRange, y::AbstractUnitRange)
+    size(ga)[1:2] != (length(x), length(y)) && error("Size of `GeoArray` $(size(ga)) does not match size of (x,y): $((length(x),length(y))). Note that this function takes *center coordinates*.")
+    ga.f = unitrange_to_affine(x, y)
+    ga
 end

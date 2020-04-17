@@ -22,6 +22,7 @@ export centercoords
 export indices
 
 export bbox
+export bbox!
 export bboxes
 
 export compose!
@@ -29,6 +30,7 @@ export compose!
 export interpolate!
 
 export epsg!
+export crs!
 
 export -,+,*,/
 

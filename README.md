@@ -8,7 +8,7 @@ This packages takes its inspiration from Python's [rasterio](https://github.com/
 
 ## Installation
 ```julia
-(v1.3) pkg> add GeoArrays
+(v1.4) pkg> add GeoArrays
 ```
 
 ## Examples
@@ -19,8 +19,7 @@ julia> using GeoArrays
 # Read TIF file
 julia> fn = download("https://github.com/yeesian/ArchGDALDatasets/blob/master/data/utmsmall.tif?raw=true")
 julia> geoarray = GeoArrays.read(fn)
-100×100×1 GeoArray{UInt8}:
-...
+100x100x1 Array{UInt8,3} with AffineMap([60.0 0.0; 0.0 -60.0], [440720.0, 3.75132e6]) and CRS PROJCS["NAD27 / UTM zone 11N"...
 
 # Affinemap containing offset and scaling
 julia> geoarray.f
@@ -30,8 +29,10 @@ AffineMap([60.0 0.0; 0.0 -60.0], [440720.0, 3.75132e6])
 julia> geoarray.crs
 GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS,String}(GeoFormatTypes.CRS(), "PROJCS[\"NAD27 / UTM zone 11N\",GEOGCS[\"NAD27\",DATUM[\"North_American_Datum_1927\",SPHEROID[\"Clarke 1866\",6378206.4,294.978698213898,AUTHORITY[\"EPSG\",\"7008\"]],AUTHORITY[\"EPSG\",\"6267\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4267\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-117],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"26711\"]]")
 
-# Create and write a TIFF
-julia> ga = GeoArray(rand(100,200,3))
+# Create, reference and write a TIFF
+julia> ga = GeoArray(rand(100,200))
+julia> bbox!(ga, (min_x=2., min_y=51., max_x=5., max_y=54.))  # roughly the Netherlands
+julia> epsg!(ga, 4326)  # in WGS84
 julia> GeoArrays.write!("test.tif", ga)
 ```
 
@@ -64,9 +65,7 @@ julia> compose!(ga, trans)
 
 # Math with GeoArrays (- + * /)
 julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
-5×5×1 GeoArray{Float64}:
-[:, :, 1] =
- 0.417168   0.253739  0.132952   0.0702787  0.34263
+5x5x1 Array{Float64,3} with AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]) and undefined CRS
 ```
 
 #### Interpolation
