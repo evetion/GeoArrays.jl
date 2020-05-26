@@ -8,8 +8,8 @@ const GFT = GeoFormatTypes
 
 include("geoarray.jl")
 include("geoutils.jl")
-include("io.jl")
 include("utils.jl")
+include("io.jl")
 include("interpolate.jl")
 include("crs.jl")
 include("operations.jl")

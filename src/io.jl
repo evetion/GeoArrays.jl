@@ -1,12 +1,4 @@
-const gdt_lookup = Dict{DataType, ArchGDAL.GDAL.GDALDataType}(
-    UInt8 => ArchGDAL.GDAL.GDT_Byte,
-    UInt16 => ArchGDAL.GDAL.GDT_UInt16,
-    Int16 => ArchGDAL.GDAL.GDT_Int16,
-    UInt32 => ArchGDAL.GDAL.GDT_UInt32,
-    Int32 => ArchGDAL.GDAL.GDT_Int32,
-    Float32 => ArchGDAL.GDAL.GDT_Float32,
-    Float64 => ArchGDAL.GDAL.GDT_Float64
-)
+
 
 function read(fn::AbstractString)
     isfile(fn) || error("File not found.")
@@ -46,7 +38,7 @@ function read(fn::AbstractString)
     end
 
     if any(mask)
-        A = Array{Union{Missing, eltype(A)}}(A)
+        A = Array{Union{Missing,eltype(A)}}(A)
         A[mask] .= missing
     end
 
@@ -57,7 +49,7 @@ function read(fn::AbstractString)
     GeoArray(A, am, wkt)
 end
 
-function write!(fn::AbstractString, ga::GeoArray, nodata=nothing, shortname=find_shortname(fn))
+function write!(fn::AbstractString, ga::GeoArray, nodata = nothing, shortname = find_shortname(fn))
     options = String[]
     w, h, b = size(ga)
     dtype = eltype(ga)
@@ -70,15 +62,22 @@ function write!(fn::AbstractString, ga::GeoArray, nodata=nothing, shortname=find
     # Slice data and replace missing by nodata
     if isa(dtype, Union) && dtype.a == Missing
         dtype = dtype.b
-        nodata == nothing && (nodata = typemax(dtype))
+        if dtype ∉ keys(ArchGDAL._GDALTYPE)
+            dtype, data = cast_to_gdal(data)
+        end
+        nodata === nothing && (nodata = typemax(dtype))
         m = ismissing.(data)
         data[m] .= nodata
         data = Array{dtype}(data)
         use_nodata = true
     end
 
-    ArchGDAL.create(fn, driver=ArchGDAL.getdriver(shortname), width=w, height=h, nbands=b, dtype=dtype, options=options) do dataset
-        for i=1:b
+    if dtype ∉ keys(ArchGDAL._GDALTYPE)
+        dtype, data = cast_to_gdal(data)
+    end
+
+    ArchGDAL.create(fn, driver = ArchGDAL.getdriver(shortname), width = w, height = h, nbands = b, dtype = dtype, options = options) do dataset
+        for i = 1:b
             band = ArchGDAL.getband(dataset, i)
             ArchGDAL.write!(band, data[:,:,i])
             use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
