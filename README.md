@@ -1,5 +1,7 @@
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://evetion.github.io/GeoArrays.jl/) [![Build Status](https://travis-ci.org/evetion/GeoArrays.jl.svg?branch=master)](https://travis-ci.org/evetion/GeoArrays.jl) [![Build status](https://ci.appveyor.com/api/projects/status/shk6aock4h80cd7j?svg=true)](https://ci.appveyor.com/project/evetion/GeoArrays-jl) [![codecov](https://codecov.io/gh/evetion/GeoArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/evetion/GeoArrays.jl)
+
 # GeoArrays
+
 Simple geographical raster interaction built on top of [ArchGDAL](https://github.com/yeesian/ArchGDAL.jl/), [GDAL](https://github.com/JuliaGeo/GDAL.jl) and [CoordinateTransformations](https://github.com/FugroRoames/CoordinateTransformations.jl).
 
 A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based on the axes and a CRS definition to interpret these coordinates into in the real world. It's three dimensional and can be seen as a stack (3d) of 2d geospatial rasters (bands), the dimensions are :x, :y, and :bands. The AffineMap and CRS (coordinates) only operate on the :x and :y dimensions.
@@ -7,12 +9,15 @@ A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based o
 This packages takes its inspiration from Python's [rasterio](https://github.com/mapbox/rasterio).
 
 ## Installation
+
 ```julia
-(v1.4) pkg> add GeoArrays
+(v1.5) pkg> add GeoArrays
 ```
 
 ## Examples
+
 #### Basic Usage
+
 ```julia
 julia> using GeoArrays
 
@@ -37,6 +42,7 @@ julia> GeoArrays.write!("test.tif", ga)
 ```
 
 #### Using coordinates
+
 ```julia
 # Find coordinates by index
 julia> coords(geoarray, [1,1])
@@ -56,7 +62,9 @@ julia> coords(geoarray)
  [440720.0, 3.75132e6]  [440720.0, 3.75126e6]  [440720.0, 3.7512e6] ...
  ...
 ```
+
 #### Manipulation
+
 ```julia
 # Translate complete raster by x + 100
 julia> trans = Translation(100, 0)
@@ -69,6 +77,7 @@ julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
 ```
 
 #### Interpolation
+
 ```julia
 julia> using InverseDistanceWeighting  # or any solver from the GeoStats ecosystem
 julia> ga = GeoArray(Array{Union{Missing, Float64}}(rand(5, 1)))
@@ -89,6 +98,7 @@ julia> GeoArrays.interpolate!(ga, InvDistWeight(:z => (neighbors=3,)))
 ```
 
 #### Plotting
+
 ```julia
 # Plot a GeoArray
 julia> using Plots
@@ -99,4 +109,5 @@ julia> plot(ga)
 # or plot a band other than the first one
 julia> plot(ga, band=2)
 ```
+
 ![example plot](docs/img/RGB.byte.png)
