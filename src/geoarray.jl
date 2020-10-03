@@ -16,8 +16,8 @@ end
 Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{T}) where {T<:GeoArray} = IndexLinear()
 Base.getindex(ga::GeoArray, i::Int) = getindex(ga.A, i)
-Base.getindex(ga::GeoArray, I::Vararg{Int, 2}) = getindex(ga.A, I..., :)
-Base.getindex(ga::GeoArray, I::Vararg{Int, 3}) = getindex(ga.A, I...)
+Base.getindex(ga::GeoArray, I::Vararg{Union{Int, <:AbstractRange{<:Int} }, 2}) = getindex(ga.A, I..., :)
+Base.getindex(ga::GeoArray, I::Vararg{Union{Int, <:AbstractRange{<:Int} }, 3} ) = getindex(ga.A, I...)
 Base.iterate(ga::GeoArray) = iterate(ga.A)
 Base.length(ga::GeoArray) = length(ga.A)
 Base.parent(ga::GeoArray) = ga.A

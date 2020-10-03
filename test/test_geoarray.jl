@@ -1,5 +1,12 @@
 using CoordinateTransformations
 
+@testset "Indexing" begin
+    x = GeoArray(rand(5, 5, 5))
+    @test length(x[1]) == 1
+    @test length(x[1, 2]) == 5
+    @test size(x[1:3, 1:3]) == (3, 3, 5)
+    @test size(x[1:3, 1:3 ,1:3]) == (3, 3, 3)
+end
 @testset "Reading rasters" begin
     ga = GeoArrays.read("data/utmsmall.tif")
     @test bbox(ga) == (min_x = 440720.0, min_y = 3.74532e6, max_x = 446720.0, max_y = 3.75132e6)
