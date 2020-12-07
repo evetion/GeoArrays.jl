@@ -1,13 +1,13 @@
 
 
-function read(fn::AbstractString, bands = missing)
+function read(fn::AbstractString, bands = nothing)
     isfile(fn) || error("File not found.")
     dataset = ArchGDAL.unsafe_read(fn)
 
-    if ismissing(bands)
+    if bands === nothing
         nbands = ArchGDAL.nraster(dataset)
         bands = 1:nbands
-    end    
+    end
     A = ArchGDAL.read(dataset, bands)
     am = get_affine_map(dataset)
 
@@ -86,7 +86,8 @@ function write!(fn::AbstractString, ga::GeoArray, nodata = nothing, shortname = 
         for i = 1:b
             band = ArchGDAL.getband(dataset, i)
             ArchGDAL.write!(band, data[:,:,i])
-            use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
+            # use_nodata && 
+            nodata !== nothing && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
         end
 
         # Set geotransform and crs
@@ -97,3 +98,4 @@ function write!(fn::AbstractString, ga::GeoArray, nodata = nothing, shortname = 
     end
     fn
 end
+

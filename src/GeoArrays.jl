@@ -1,6 +1,7 @@
 module GeoArrays
 
 using GeoFormatTypes
+using GDAL
 using ArchGDAL
 using CoordinateTransformations
 using StaticArrays
@@ -14,6 +15,9 @@ include("interpolate.jl")
 include("crs.jl")
 include("operations.jl")
 include("plot.jl")
+include("bbox.jl")
+include("centercoords.jl")
+include("coords.jl")
 
 export GeoArray
 

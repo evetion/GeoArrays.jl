@@ -1,13 +1,15 @@
 name = "GeoArrays"
 uuid = "2fb1d81b-e6a0-5fc5-82e6-8e06903437ab"
-authors = ["Maarten Pronk <git@evetion.nl>"]
-version = "0.3.2"
+authors = ["kongdd.sysu@gmail.com", "Maarten Pronk <git@evetion.nl>"]
+version = "0.4.1"
 
 [deps]
 ArchGDAL = "c9ce4bd3-c3d5-55b8-8973-c0e20141b8c3"
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
+GDAL = "add2ef01-049f-52c4-9ee2-e494f65e021a"
 GeoFormatTypes = "68eda718-8dee-11e9-39e7-89f7f65f511f"
 GeoStatsBase = "323cb8eb-fbf6-51c0-afd0-f8fba70507b2"
+NCDatasets = "85f8d34a-cbdd-5861-8df4-14fed0d494ab"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 

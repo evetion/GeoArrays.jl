@@ -36,12 +36,6 @@ function is_rotated(ga::GeoArray)
     ga.f.linear[2] != 0. || ga.f.linear[3] != 0.
 end
 
-function bbox(ga::GeoArray)
-    ax, ay = ga.f(SVector(0,0))
-    bx, by = ga.f(SVector(size(ga)[1:2]))
-    (min_x=min(ax, bx), min_y=min(ay, by), max_x=max(ax, bx), max_y=max(ay, by))
-end
-
 function unitrange_to_affine(x::StepRangeLen, y::StepRangeLen)
     δx, δy = step(x), step(y)
     AffineMap(
@@ -50,33 +44,6 @@ function unitrange_to_affine(x::StepRangeLen, y::StepRangeLen)
     )
 end
 
-function bbox_to_affine(size::Tuple{Integer, Integer}, bbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y),Tuple{Float64, Float64, Float64, Float64}})
-    AffineMap(
-        SMatrix{2,2}((bbox.max_x - bbox.min_x) / size[1], 0, 0, -(bbox.max_y - bbox.min_y)/size[2]),
-        SVector(bbox.min_x, bbox.max_y)
-        )
-end
-
-"""Set geotransform of `GeoArray` by specifying a bounding box.
-Note that this only can result in a non-rotated or skewed `GeoArray`."""
-function bbox!(ga::GeoArray, bbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y),Tuple{Float64, Float64, Float64, Float64}})
-    ga.f = bbox_to_affine(size(ga)[1:2], bbox)
-    ga
-end
-
-"""Generate bounding boxes for GeoArray cells."""
-function bboxes(ga::GeoArray)
-    c = coords(ga)::Array{StaticArrays.SArray{Tuple{2},Float64,1,2},2}
-    m, n = size(c)
-    cellbounds = Matrix{NamedTuple}(undef, (m-1, n-1))
-    for j = 1:n-1, i = 1:m-1
-        v = c[i:i+1, j:j+1]
-        minx, maxx = extrema(first.(v))::Tuple{Float64, Float64}
-        miny, maxy = extrema(last.(v))::Tuple{Float64, Float64}
-        cellbounds[i, j] = (min_x=minx, max_x=maxx, min_y=miny, max_y=maxy)
-    end
-    cellbounds
-end
 
 # Extend CoordinateTransformations
 CoordinateTransformations.compose(ga::GeoArray, t2::AffineMap) = CoordinateTransformations.compose(ga.f, t2)

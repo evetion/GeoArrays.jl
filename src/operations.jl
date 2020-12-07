@@ -23,3 +23,8 @@ function Base.:/(a::GeoArray, b::GeoArray)
     equals(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
     GeoArray(a.A ./ b.A, a.f, a.crs)
 end
+
+Base.:+(a::GeoArray, b::Real) = GeoArray(a.A + b, a.f, a.crs)
+Base.:-(a::GeoArray, b::Real) = GeoArray(a.A - b, a.f, a.crs)
+Base.:*(a::GeoArray, b::Real) = GeoArray(a.A * b, a.f, a.crs)
+Base.:/(a::GeoArray, b::Real) = GeoArray(a.A / b, a.f, a.crs)
