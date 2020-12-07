@@ -1,15 +1,21 @@
 
 
-function read(fn::AbstractString)
+function read(fn::AbstractString, bands = missing)
     isfile(fn) || error("File not found.")
     dataset = ArchGDAL.unsafe_read(fn)
-    A = ArchGDAL.read(dataset)
+
+    if ismissing(bands)
+        nbands = ArchGDAL.nraster(dataset)
+        bands = 1:nbands
+    end    
+    A = ArchGDAL.read(dataset, bands)
     am = get_affine_map(dataset)
 
     # nodata masking
     # A = Array{Union{Missing, eltype(A)}}(A)
     mask = falses(size(A))
-    for i = 1:size(A)[end]
+    
+    for i = bands
         band = ArchGDAL.getband(dataset, i)
         maskflags = mask_flags(band)
 
