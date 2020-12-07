@@ -60,21 +60,3 @@ end
 function compose!(ga::GeoArray, t2::Translation)
     ga.f = compose(ga, t2)
 end
-
-"""Function to flip GeoArray upside down to adjust to GDAL ecosystem."""
-function flipud!(ga::GeoArray)
-    # Flip data upside down
-    ga.A = reverse(ga.A, dims=2)
-
-    # Find new corner coordinates
-    ux, uy = ga.f(SVector{2}([0, size(ga)[2]]))
-
-    # Define y mirror and compose
-    lm = LinearMap(SMatrix{2,2}([1.0 0.0; 0.0 -1.0]))
-    am = compose(ga.f, lm)  # AffineMap
-    translate = SVector{2}([ux, uy])
-    f = AffineMap(am.linear, translate)
-
-    ga.f = f
-    ga
-end

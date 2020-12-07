@@ -1,8 +1,18 @@
 struct box
-    x_min::Float64
-    y_min::Float64
-    x_max::Float64
-    y_max::Float64
+    xmin::Float64
+    ymin::Float64
+    xmax::Float64
+    ymax::Float64
+end
+
+bbox(xmin, ymin, xmax, ymax) = box(xmin, ymin, xmax, ymax)
+bbox(;xmin, ymin, xmax, ymax) = box(xmin, ymin, xmax, ymax)
+
+function bbox(lon, lat)
+    cellsize_x = abs(lon[2] - lon[1])
+    cellsize_y = abs(lat[2] - lat[1])
+    box(minimum(lon) - cellsize_x/2, minimum(lat) - cellsize_y/2, 
+        maximum(lon) + cellsize_x/2, maximum(lat) + cellsize_y/2)
 end
 
 function bbox(ga::GeoArray)
@@ -11,6 +21,13 @@ function bbox(ga::GeoArray)
     # (min_x=min(ax, bx), min_y=min(ay, by), max_x=max(ax, bx), max_y=max(ay, by))
     box(min(ax, bx), min(ay, by), max(ax, bx), max(ay, by))
 end
+
+function bbox_nc(ncfile::String)
+    lat = NetCDF.ncread(ncfile, "lat")
+    lon = NetCDF.ncread(ncfile, "lon")
+    bbox(lon, lat)    
+end
+
 
 function bbox_to_affine(size::Tuple{Integer, Integer}, bbox::box)
     AffineMap(

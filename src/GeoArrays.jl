@@ -18,6 +18,7 @@ include("plot.jl")
 include("bbox.jl")
 include("centercoords.jl")
 include("coords.jl")
+include("resample.jl")
 
 export GeoArray
 
@@ -25,8 +26,7 @@ export coords
 export centercoords
 export indices
 
-export bbox
-export bbox!
+export bbox, bbox!
 export bboxes
 
 export compose!

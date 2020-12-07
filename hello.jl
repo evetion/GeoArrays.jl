@@ -7,10 +7,10 @@ using GeoArrays
 using Test
 using CoordinateTransformations
 # const GFT = GeoFormatTypes
-# bbox(;x_min, y_min, x_max, y_max) = bbox(x_min, y_min, x_max, y_max)
+# bbox(;xmin, ymin, xmax, ymax) = bbox(xmin, ymin, xmax, ymax)
 
 # x = bbox(1, 2, 3, 4)
-# y = bbox(x_min = 1, y_min = 2, x_max = 3, y_max = 4)
+# y = bbox(xmin = 1, ymin = 2, xmax = 3, ymax = 4)
 file = "N:/Research/phenology/phenologyTP/INPUT/tif/v015/PML2_yearly_dynamic2014-01-01.tif"
 ga = GeoArrays.read(file)
 # coords(x)

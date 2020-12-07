@@ -42,7 +42,9 @@ function meshgrid(x::AbstractArray{T,1}, y::AbstractArray{T,1}) where T <: Real
     X, Y
 end
 
-function coords_vec(ga::GeoArray, mid::Vector{Int} = [1, 1])
+function coords_xy(ga::GeoArray, mid::Vector{Int} = [1, 1])
+    if length(mid) == 1; mid = [mid, mid]; end
+    
     cellsize_x = ga.f.linear[1]
     cellsize_y = abs(ga.f.linear[4])
     cellsize_y2 = ga.f.linear[4]
@@ -56,15 +58,20 @@ function coords_vec(ga::GeoArray, mid::Vector{Int} = [1, 1])
 
     x, y
 end
-coords_vec(ga::GeoArray, mid::Int = 1) = coords_vec(ga, [mid, mid])
 
-coords_x(ga::GeoArray, mid::Int = 1) = coords_vec(ga, mid)[1]
-coords_y(ga::GeoArray, mid::Int = 1) = coords_vec(ga, mid)[2]
+function coords_xy(bbox::box, cellsize::T) where {T <: Real}
+    lon = bbox.xmin + cellsize/2 : cellsize : bbox.xmax
+    lat = reverse(bbox.ymin + cellsize/2 : cellsize : bbox.ymax)
+    lon, lat # return
+end
+
+coords_x(ga::GeoArray, mid::Int = 1) = coords_xy(ga, mid)[1]
+coords_y(ga::GeoArray, mid::Int = 1) = coords_xy(ga, mid)[2]
 
 function coords(ga::GeoArray, mid::Vector{Int} = [1, 1])
-    x, y = coords_vec(ga, mid)
+    x, y = coords_xy(ga, mid)
     meshgrid(x, y)
 end
 
 
-export meshgrid, coords, coords_vec, coords_x, coords_y
+export meshgrid, coords, coords_xy, coords_x, coords_y
