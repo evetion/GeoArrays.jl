@@ -16,12 +16,15 @@ const tbbox = (min_x = 440720.0, min_y = 3.74532e6, max_x = 446720.0, max_y = 3.
     @testset "flip upside down" begin
         ga = GeoArrays.read("data/utmsmall.tif")
         ga_identical = GeoArrays.read("data/utmsmall.tif")
-        @test ga == ga_identical
+        @test ga.A == ga_identical.A
+        @test ga.f == ga_identical.f
+        @test ga.crs == ga_identical.crs
         GeoArrays.flipud!(ga)
-        @test ga != ga_identical
+        @test ga.f != ga_identical.f
         @test GeoArrays.bbox(ga) == tbbox
         GeoArrays.flipud!(ga)
-        @test ga == ga_identical
+        @test ga.f == ga_identical.f
+        @test ga.A == ga_identical.A
     end
 
     @testset "geotransform should remain the same" begin

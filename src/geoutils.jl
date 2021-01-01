@@ -1,4 +1,4 @@
-function get_affine_map(ds::ArchGDAL.Dataset)
+function get_affine_map(ds::ArchGDAL.IDataset)
     # ArchGDAL fails hard on datasets without
     # an affinemap. GDAL documents that on fail
     # a default affinemap should be returned.

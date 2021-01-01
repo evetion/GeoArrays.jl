@@ -1,15 +1,19 @@
 
 
-function read(fn::AbstractString)
+function read(fn::AbstractString; masked=true)
     isfile(fn) || error("File not found.")
-    dataset = ArchGDAL.unsafe_read(fn)
-    A = ArchGDAL.read(dataset)
-    am = get_affine_map(dataset)
+    # dataset = ArchGDAL.unsafe_read(fn)
+    dataset = ArchGDAL.readraster(fn)
+    am = get_affine_map(dataset.ds)
+    wkt = ArchGDAL.getproj(dataset)
+
+    # Not yet in type
+    # meta = metadata(dataset)
 
     # nodata masking
     # A = Array{Union{Missing, eltype(A)}}(A)
-    mask = falses(size(A))
-    for i = 1:size(A)[end]
+    mask = falses(size(dataset))
+    for i = 1:size(dataset)[end]
         band = ArchGDAL.getband(dataset, i)
         maskflags = mask_flags(band)
 
@@ -31,22 +35,18 @@ function read(fn::AbstractString)
         elseif :GMF_NODATA in maskflags
             @debug "Flag NODATA"
             nodata = get_nodata(band)
-            mask[:, :, i] = A[:,:,i] .== nodata
+            mask[:, :, i] = dataset[:,:,i] .== nodata
         else
             @warn "Unknown/unsupported mask."
         end
     end
 
     if any(mask)
-        A = Array{Union{Missing,eltype(A)}}(A)
-        A[mask] .= missing
+        dataset = Array{Union{Missing,eltype(dataset)}}(dataset)
+        dataset[mask] .= missing
     end
 
-    # crs
-    wkt = ArchGDAL.getproj(dataset)
-
-    ArchGDAL.destroy(dataset)
-    GeoArray(A, am, wkt)
+    GeoArray(dataset, am, wkt)
 end
 
 function write!(fn::AbstractString, ga::GeoArray, nodata = nothing, shortname = find_shortname(fn))
