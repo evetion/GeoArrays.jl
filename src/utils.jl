@@ -58,3 +58,16 @@ function cast_to_gdal(A::Array{<:Real,3})
         error("Can't cast $(eltype(A)) to GDAL.")
     end
 end
+
+function getmetadata(ds::ArchGDAL.RasterDataset, domain::AbstractString)
+    a = ArchGDAL.metadata(ds.ds, domain=domain)
+    k, v = zip(split.(a, "=")...)
+    Dict(Pair.(collect(k), collect(v))...)
+end
+
+function getmetadata(ds::ArchGDAL.RasterDataset)
+    domains = ArchGDAL.metadatadomainlist(ds.ds)
+    values = getmetadata.(Ref(ds), domains)
+    replace!(domains, ""=>"ROOT")
+    nt = Dict(Pair.(domains, values))
+end

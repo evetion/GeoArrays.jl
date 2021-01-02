@@ -8,44 +8,44 @@ function read(fn::AbstractString; masked=true)
     wkt = ArchGDAL.getproj(dataset)
 
     # Not yet in type
-    # meta = metadata(dataset)
+    # meta = getmetadata(dataset)
 
     # nodata masking
-    # A = Array{Union{Missing, eltype(A)}}(A)
-    mask = falses(size(dataset))
-    for i = 1:size(dataset)[end]
-        band = ArchGDAL.getband(dataset, i)
-        maskflags = mask_flags(band)
+    if masked
+        mask = falses(size(dataset))
+        for i = 1:size(dataset)[end]
+            band = ArchGDAL.getband(dataset, i)
+            maskflags = mask_flags(band)
 
-        # All values are valid, skip masking
-        if :GMF_ALL_VALID in maskflags
-            @debug "No masking"
-            continue
-        # Mask is valid for all bands
-        elseif :GMF_PER_DATASET in maskflags
-            @debug "Mask for each band"
-            maskband = ArchGDAL.getmaskband(band)
-            m = ArchGDAL.read(maskband) .== 0
-            mask[:,:,i] = m
-        # Alpha layer
-        elseif :GMF_ALPHA in maskflags
-            @warn "Dataset has band $i with an Alpha band, which is unsupported for now."
-            continue
-        # Nodata values
-        elseif :GMF_NODATA in maskflags
-            @debug "Flag NODATA"
-            nodata = get_nodata(band)
-            mask[:, :, i] = dataset[:,:,i] .== nodata
-        else
-            @warn "Unknown/unsupported mask."
+            # All values are valid, skip masking
+            if :GMF_ALL_VALID in maskflags
+                @debug "No masking"
+                continue
+            # Mask is valid for all bands
+            elseif :GMF_PER_DATASET in maskflags
+                @debug "Mask for each band"
+                maskband = ArchGDAL.getmaskband(band)
+                m = ArchGDAL.read(maskband) .== 0
+                mask[:,:,i] = m
+            # Alpha layer
+            elseif :GMF_ALPHA in maskflags
+                @warn "Dataset has band $i with an Alpha band, which is unsupported for now."
+                continue
+            # Nodata values
+            elseif :GMF_NODATA in maskflags
+                @debug "Flag NODATA"
+                nodata = get_nodata(band)
+                mask[:, :, i] = dataset[:,:,i] .== nodata
+            else
+                @warn "Unknown/unsupported mask."
+            end
+        end
+
+        if any(mask)
+            dataset = Array{Union{Missing,eltype(dataset)}}(dataset)
+            dataset[mask] .= missing
         end
     end
-
-    if any(mask)
-        dataset = Array{Union{Missing,eltype(dataset)}}(dataset)
-        dataset[mask] .= missing
-    end
-
     GeoArray(dataset, am, wkt)
 end
 
