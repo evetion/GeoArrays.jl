@@ -2,7 +2,16 @@
 @testset "Reading rasters" begin
     for f in remotefiles
         @testset "Reading $f" begin
-            ga = GeoArrays.read(f)
+            ga = GeoArrays.read(joinpath(testdatadir, f))
+        end
+    end
+end
+
+@testset "Reading rasters streaming" begin
+    for f in remotefiles
+        @testset "Reading $f streaming" begin
+            ga = GeoArrays.read(joinpath(testdatadir, f), masked=false)
+            ga[1,1,1]
         end
     end
 end
@@ -11,23 +20,23 @@ end
 
     @testset "Simplest version" begin
         ga = GeoArray(rand(100,200,3))
-        fn = GeoArrays.write!("test.tif", ga)
+        fn = GeoArrays.write!(joinpath(testdatadir, "test.tif"), ga)
         GeoArrays.read(fn)
     end
     @testset "Simplest version" begin
         ga = GeoArray(rand(100,200,3))
-        fn = GeoArrays.write!("test.img", ga)
+        fn = GeoArrays.write!(joinpath(testdatadir, "test.img"), ga)
         GeoArrays.read(fn)
     end
 
     @testset "Nodata" begin
         ga = GeoArray(Array{Union{Missing, Int32}}(rand(1:10,100,200,3)))
-        fn = GeoArrays.write!("test_nodata.tif", ga, 1)
+        fn = GeoArrays.write!(joinpath(testdatadir, "test_nodata.tif"), ga, 1)
         GeoArrays.read(fn)
     end
     @testset "Nodata" begin
         ga = GeoArray(Array{Union{Missing, Int32}}(rand(1:10,100,200,3)))
-        fn = GeoArrays.write!("test_nodata.img", ga, 1)
+        fn = GeoArrays.write!(joinpath(testdatadir, "test_nodata.img"), ga, 1)
         GeoArrays.read(fn)
     end
 

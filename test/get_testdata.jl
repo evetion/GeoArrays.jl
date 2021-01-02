@@ -1,4 +1,4 @@
-const testdatadir = dirname(@__FILE__)
+const testdatadir = joinpath(dirname(@__FILE__), "data")
 
 REPO_URL = "https://github.com/yeesian/ArchGDALDatasets/blob/master/"
 
@@ -25,9 +25,9 @@ remotefiles = [
 
 for f in remotefiles
     # create the directories if they don't exist
-    currdir = dirname(f)
+    currfile = joinpath(testdatadir, f)
+    currdir = dirname(currfile)
     isdir(currdir) || mkpath(currdir)
     # download the file
-    currfile = joinpath(testdatadir, f)
     isfile(currfile) || download(REPO_URL*f*"?raw=true", currfile)
 end
