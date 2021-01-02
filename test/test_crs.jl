@@ -50,7 +50,7 @@ const GFT = GeoFormatTypes
     end
 
     @testset "Check projection of file" begin
-        ga = GeoArrays.read("gdalworkshop/world.tif")
+        ga = GeoArrays.read(joinpath(testdatadir, "gdalworkshop/world.tif"))
         @test GFT.val(ga.crs) == wgs84_wkt
     end
 
