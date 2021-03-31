@@ -1,7 +1,7 @@
 using GeoStatsBase
 
 """Interpolate missing values in GeoArray."""
-function interpolate!(ga::GeoArray, solver::T, band=1, symbol=:z) where T <: AbstractSolver
+function interpolate!(ga::GeoArray, solver::T, band=1) where T <: EstimationSolver
     # Irregular grid
     # TODO Use unstructured GeoStats method
     if is_rotated(ga)
@@ -9,13 +9,17 @@ function interpolate!(ga::GeoArray, solver::T, band=1, symbol=:z) where T <: Abs
 
     # Regular grid
     else
-        rg = RegularGrid(size(ga.A)[1:2], Tuple(ga.f.translation), (abs(ga.f.linear[1]), abs(ga.f.linear[4])))
-        problemdata = georef(NamedTuple{(symbol,)}((ga.A[:,:,band],)), rg)
+        data = @view ga.A[:,:,band]
+        problemdata = georef(
+            (;band=data,),
+            origin=Tuple(ga.f.translation),
+            spacing=(abs(ga.f.linear[1]), abs(ga.f.linear[4]))
+        )
     end
-
-    problem = EstimationProblem(problemdata, rg, symbol, mapper=CopyMapper())
+    domain = LinearIndices(size(data))[ismissing.(data)]
+    problem = EstimationProblem(problemdata, view(problemdata.domain, domain), :band)
     solution = solve(problem, solver)
 
-    ga.A[:, :, band] .= reshape(solution[symbol][:mean], size(ga.A)[1:2])
+    data[domain] .= solution[:band]
     ga
 end

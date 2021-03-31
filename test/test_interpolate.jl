@@ -1,5 +1,5 @@
 using StaticArrays
-using KrigingEstimators
+using GeoEstimation
 
 @testset "Interpolating rasters" begin
     @testset "Regular Grid interpolation" begin

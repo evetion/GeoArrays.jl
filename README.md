@@ -87,7 +87,7 @@ julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
 #### Interpolation
 
 ```julia
-julia> using InverseDistanceWeighting  # or any solver from the GeoStats ecosystem
+julia> using GeoEstimation  # or any esimation solver from the GeoStats ecosystem
 julia> ga = GeoArray(Array{Union{Missing, Float64}}(rand(5, 1)))
 julia> ga.A[2,1] = missing
 [:, :, 1] =
@@ -96,7 +96,7 @@ julia> ga.A[2,1] = missing
  0.852882193026649
  0.7137410453351622
  0.5949409082233854
-julia> GeoArrays.interpolate!(ga, InvDistWeight(:z => (neighbors=3,)))
+julia> GeoArrays.interpolate!(ga, IDW(:band => (neighbors=3,)))  # band is the hardcoded variable
 [:, :, 1] =
  0.6760718768442127
  0.7543298370153771
