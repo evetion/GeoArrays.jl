@@ -5,6 +5,7 @@ version = "0.4.0"
 
 [deps]
 ArchGDAL = "c9ce4bd3-c3d5-55b8-8973-c0e20141b8c3"
+ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
 GeoFormatTypes = "68eda718-8dee-11e9-39e7-89f7f65f511f"
 GeoStatsBase = "323cb8eb-fbf6-51c0-afd0-f8fba70507b2"
