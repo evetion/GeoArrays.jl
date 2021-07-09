@@ -62,7 +62,9 @@ function write!(fn::AbstractString, ga::GeoArray, nodata = nothing, shortname = 
     # Slice data and replace missing by nodata
     if isa(dtype, Union) && dtype.a == Missing
         dtype = dtype.b
-        if dtype ∉ keys(ArchGDAL._GDALTYPE)
+        try convert(ArchGDAL.GDALDataType, dtype)
+            nothing
+        catch
             dtype, data = cast_to_gdal(data)
         end
         nodata === nothing && (nodata = typemax(dtype))
@@ -72,7 +74,9 @@ function write!(fn::AbstractString, ga::GeoArray, nodata = nothing, shortname = 
         use_nodata = true
     end
 
-    if dtype ∉ keys(ArchGDAL._GDALTYPE)
+    try convert(ArchGDAL.GDALDataType, dtype)
+        nothing
+    catch
         dtype, data = cast_to_gdal(data)
     end
 
