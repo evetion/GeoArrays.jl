@@ -12,10 +12,10 @@ RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-ArchGDAL = "0.5, 0.6, 0.7"
+ArchGDAL = "^0.7"
 CoordinateTransformations = "0.5, 0.6"
-GeoFormatTypes = "0.3"
-GeoStatsBase = "0.21"
+GeoFormatTypes = "^0.3"
+GeoStatsBase = "^0.21"
 RecipesBase = "0.7, 0.8, 1.0"
 StaticArrays = "0.12, 1.0"
 julia = "1.5, 1.6"
