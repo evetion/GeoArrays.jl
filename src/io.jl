@@ -1,6 +1,6 @@
 
 
-function read(fn::AbstractString; masked=true)
+function read(fn::AbstractString; masked=true, band=nothing)
     isfile(fn) || error("File not found.")
     # dataset = ArchGDAL.unsafe_read(fn)
     dataset = ArchGDAL.readraster(fn)
@@ -10,10 +10,16 @@ function read(fn::AbstractString; masked=true)
     # Not yet in type
     # meta = getmetadata(dataset)
 
+    if isnothing(band)
+        bands = 1:size(dataset)[end]
+    else
+        bands = band:band
+    end
+
     # nodata masking
     if masked
-        mask = falses(size(dataset))
-        for i = 1:size(dataset)[end]
+        mask = falses((size(dataset)[1:2]..., length(bands)))
+        for i ∈ bands
             band = ArchGDAL.getband(dataset, i)
             maskflags = mask_flags(band)
 
@@ -40,16 +46,21 @@ function read(fn::AbstractString; masked=true)
                 @warn "Unknown/unsupported mask."
             end
         end
-
-        if any(mask)
-            dataset = Array{Union{Missing,eltype(dataset)}}(dataset)
-            dataset[mask] .= missing
-        end
     end
+
+    if !isnothing(band)
+        dataset = dataset[:, :, bands]
+    end
+
+    if masked && any(mask)
+        dataset = Array{Union{Missing,eltype(dataset)}}(dataset)
+        dataset[mask] .= missing
+    end
+
     GeoArray(dataset, am, wkt)
 end
 
-function write!(fn::AbstractString, ga::GeoArray, nodata = nothing, shortname = find_shortname(fn))
+function write!(fn::AbstractString, ga::GeoArray, nodata=nothing, shortname=find_shortname(fn))
     options = String[]
     w, h, b = size(ga)
     dtype = eltype(ga)
@@ -80,7 +91,7 @@ function write!(fn::AbstractString, ga::GeoArray, nodata = nothing, shortname = 
         dtype, data = cast_to_gdal(data)
     end
 
-    ArchGDAL.create(fn, driver = ArchGDAL.getdriver(shortname), width = w, height = h, nbands = b, dtype = dtype, options = options) do dataset
+    ArchGDAL.create(fn, driver=ArchGDAL.getdriver(shortname), width=w, height=h, nbands=b, dtype=dtype, options=options) do dataset
         for i = 1:b
             band = ArchGDAL.getband(dataset, i)
             ArchGDAL.write!(band, data[:,:,i])

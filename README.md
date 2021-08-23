@@ -11,7 +11,7 @@ This packages takes its inspiration from Python's [rasterio](https://github.com/
 ## Installation
 
 ```julia
-(v1.5) pkg> add GeoArrays
+(v1.7) pkg> add GeoArrays
 ```
 
 ## Examples
