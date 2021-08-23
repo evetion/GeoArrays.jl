@@ -25,7 +25,7 @@ end
 end
 
 @testset "GeoArray constructors" begin
-    x, y = range(4, stop = 8.0, length = 10), range(0, stop = 1, length = 9)
+    x, y = range(4, stop=8.0, length=10), range(0, stop=1, length=9)
     ga2 = GeoArray(rand(10, 9), x, y)
     ga2 = GeoArray(rand(10, 9), x, y, "")
     ga3 = GeoArray(rand(10, 9, 8), x, y)
@@ -36,7 +36,7 @@ end
     for i in 1:length(x), j in 1:length(y)
         @test GeoArrays.centercoords(ga3, [i,j]) ≈ [x[i],y[j]]
     end
-    x, y = range(4, stop = 8.0, length = 11), range(0, stop = 1, length = 9)
+    x, y = range(4, stop=8.0, length=11), range(0, stop=1, length=9)
     @test_throws ErrorException GeoArray(rand(10, 9), x, y)
 end
 
@@ -46,4 +46,12 @@ end
 
     ga = GeoArray(rand(Bool, 5, 5))
     @test_throws ErrorException GeoArrays.write!(joinpath(testdatadir, "test_conversion.tif"), ga)
+end
+
+@testset "Similar" begin
+    ga = GeoArrays.read(joinpath(testdatadir, remotefiles[end - 1]))
+    gg = ga[250:end - 2,250:end - 250]
+    @test gg[1,1] == ga[250,250]
+    @test coords(gg, [1, 1]) == coords(ga, [250, 250])
+    GeoArrays.write!("test.tif", gg)
 end
