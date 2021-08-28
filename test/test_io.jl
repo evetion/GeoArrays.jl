@@ -48,7 +48,7 @@ end
 end
 
 @testset "Read second band" begin
-    fn = remotefiles[end - 2]
+    fn = joinpath(testdatadir, remotefiles[end - 1])
     GeoArrays.read(fn, band=2)
 end
 
