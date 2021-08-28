@@ -19,8 +19,8 @@ function read(fn::AbstractString; masked=true, band=nothing)
     # nodata masking
     if masked
         mask = falses((size(dataset)[1:2]..., length(bands)))
-        for i ∈ bands
-            band = ArchGDAL.getband(dataset, i)
+        for (i, b) ∈ enumerate(bands)
+            band = ArchGDAL.getband(dataset, b)
             maskflags = mask_flags(band)
 
             # All values are valid, skip masking
@@ -41,7 +41,7 @@ function read(fn::AbstractString; masked=true, band=nothing)
             elseif :GMF_NODATA in maskflags
                 @debug "Flag NODATA"
                 nodata = get_nodata(band)
-                mask[:, :, i] = dataset[:,:,i] .== nodata
+                mask[:, :, i] = dataset[:,:,b] .== nodata
             else
                 @warn "Unknown/unsupported mask."
             end
