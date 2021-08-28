@@ -19,8 +19,8 @@ function read(fn::AbstractString; masked=true, band=nothing)
     # nodata masking
     if masked
         mask = falses((size(dataset)[1:2]..., length(bands)))
-        for i ∈ bands
-            band = ArchGDAL.getband(dataset, i)
+        for (i, b) ∈ enumerate(bands)
+            band = ArchGDAL.getband(dataset, b)
             maskflags = mask_flags(band)
 
             # All values are valid, skip masking

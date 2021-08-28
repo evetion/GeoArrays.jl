@@ -22,7 +22,7 @@ end
             ga = GeoArrays.read(joinpath(testdatadir, f), masked=false)
             ga[1,1,1]
         end
-    end
+            end
 end
 
 @testset "Reading rasters streaming first band" begin
@@ -34,6 +34,24 @@ end
         end
     end
 end
+
+@testset "Reading rasters and writing" begin
+    for f in remotefiles
+        @testset "Reading $f streaming" begin
+            ga = GeoArrays.read(joinpath(testdatadir, f))
+            GeoArrays.write!(joinpath(testdatadir, "test.tif"), ga)
+            ga_copy = GeoArrays.read(joinpath(testdatadir, "test.tif"))
+            @test ga[1,1,1] === ga_copy[1,1,1]
+            @test ga[end,end,end] === ga_copy[end,end,end]
+        end
+    end
+end
+
+@testset "Read second band" begin
+    fn = remotefiles[end - 2]
+    GeoArrays.read(fn, band=2)
+end
+
 
 @testset "Writing rasters" begin
 
