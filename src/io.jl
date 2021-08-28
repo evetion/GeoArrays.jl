@@ -41,7 +41,7 @@ function read(fn::AbstractString; masked=true, band=nothing)
             elseif :GMF_NODATA in maskflags
                 @debug "Flag NODATA"
                 nodata = get_nodata(band)
-                mask[:, :, i] = dataset[:,:,i] .== nodata
+                mask[:, :, i] = dataset[:,:,b] .== nodata
             else
                 @warn "Unknown/unsupported mask."
             end
