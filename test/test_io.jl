@@ -36,11 +36,11 @@ end
 end
 
 @testset "Reading rasters and writing" begin
-    for f in remotefiles
-        @testset "Reading $f streaming" begin
+    for (i, f) in enumerate(remotefiles)
+        @testset "Reading and writing $f" begin
             ga = GeoArrays.read(joinpath(testdatadir, f))
-            GeoArrays.write!(joinpath(tempdir(), "test.tif"), ga)
-            ga_copy = GeoArrays.read(joinpath(tempdir(), "test.tif"))
+            GeoArrays.write!(joinpath(tempdir(), "test_$i.tif"), ga)
+            ga_copy = GeoArrays.read(joinpath(tempdir(), "test_$i.tif"))
             @test ga[1,1,1] === ga_copy[1,1,1]
             @test ga[end,end,end] === ga_copy[end,end,end]
         end
@@ -54,7 +54,7 @@ end
 
 
 @testset "Writing rasters" begin
-
+    
     @testset "Simplest version" begin
         ga = GeoArray(rand(100, 200, 3))
         fn = GeoArrays.write!(joinpath(tempdir(), "test.tif"), ga)
