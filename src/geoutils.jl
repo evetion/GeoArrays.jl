@@ -119,6 +119,7 @@ Return true if two bboxes overlap.
 function bbox_overlap(
     bbox_a::NamedTuple{(:min_x, :min_y, :max_x, :max_y)},
     bbox_b::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
+    # TODO Define type
 
     # Check if bboxes are valid
     if (bbox_a.min_x >= bbox_a.max_x) ||
@@ -141,12 +142,13 @@ function bbox_overlap(
     end
 end
 
-"""Crop GeoArray by coordinates
-
-If the coordinates range is larger than the GeoArray, only the
-overlapping part is giver. 
 """
-function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y),Tuple{Float64,Float64,Float64,Float64}})
+    function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y),Tuple{Float64,Float64,Float64,Float64}})
+
+Crop input GeoArray by coordinates (box or another GeoArray). If the coordinates range is larger than the GeoArray, only the overlapping part is given in the result. 
+"""
+function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
+    # TODO Define type
     # Check if ga and cbox overlap
     if !bbox_overlap(bbox(ga), cbox)
         error("GeoArray and crop box do not overlap")
@@ -156,6 +158,10 @@ function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y),Tu
     i_min_x, i_min_y = indices(ga, [cbox.min_x, cbox.max_y])
     i_max_x, i_max_y = indices(ga, [cbox.max_x, cbox.min_y])
 
+    # bbox is larger
+    i_max_x -= 1
+    i_max_y -= 1
+
     # Determine indices for crop area
     i_min_x = max(i_min_x, 1)
     i_max_x = min(i_max_x, ga_x)
@@ -164,4 +170,14 @@ function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y),Tu
 
     # Subset and return GeoArray
     return ga[i_min_x:i_max_x,i_min_y:i_max_y,begin:end]
+end
+
+function crop(ga::GeoArray, cga::GeoArray)
+    # Check if ga and crop ga CRS are the same
+    if ga.crs != cga.crs
+        error("GeoArrays have different CRS")
+    end
+
+    # Crop
+    return crop(ga, bbox(cga))
 end
