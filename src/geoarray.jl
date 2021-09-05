@@ -163,7 +163,7 @@ Retrieve coordinates of the cell index by `p`.
 See `indices` for the inverse function.
 """
 function coords(ga::GeoArray, p::SVector{2,<:Integer}, strategy::AbstractStrategy)
-    ga.f(p .- strategy.offset)
+    SVector{2}(ga.f(p .- strategy.offset))
 end
 coords(ga::GeoArray, p::Vector{<:Integer}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p), strategy)
 coords(ga::GeoArray, p::Tuple{<:Integer,<:Integer}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p), strategy)
@@ -186,7 +186,7 @@ indices(ga::GeoArray, p::Tuple{<:AbstractFloat,<:AbstractFloat}, strategy::Abstr
 function coords(ga::GeoArray, strategy::AbstractStrategy=Center())
     (ui, uj) = size(ga)[1:2]
     extra = typeof(strategy) == Center ? 0 : 1
-    [coords(ga, SVector{2}(i, j), strategy) for i in 1:ui + extra, j in 1:uj + extra]
+    [coords(ga, SVector{2}(i, j), strategy) for i in 1:ui + extra, j in 1:uj + extra]::Matrix{SVector{2, Float64}}
 end
 
 # Generate coordinates for one dimension of a GeoArray
@@ -206,8 +206,6 @@ function coords(ga::GeoArray, dim::Symbol, strategy::AbstractStrategy=Center())
     end
     return ci
 end
-
-
 
 """
     coords!(ga, x::AbstractUnitRange, y::AbstractUnitRange)
