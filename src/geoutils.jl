@@ -66,7 +66,7 @@ end
 
 """Generate bounding boxes for GeoArray cells."""
 function bboxes(ga::GeoArray)
-    c = coords(ga)::Array{StaticArrays.SArray{Tuple{2},Float64,1,2},2}
+    c = coords(ga, Vertex())::Array{StaticArrays.SArray{Tuple{2},Float64,1,2},2}
     m, n = size(c)
     cellbounds = Matrix{NamedTuple}(undef, (m-1, n-1))
     for j = 1:n-1, i = 1:m-1
