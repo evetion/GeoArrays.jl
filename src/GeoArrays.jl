@@ -27,6 +27,9 @@ export bboxes
 
 export compose!
 
+export bbox_overlap
+export crop
+
 export interpolate!
 
 export epsg!
