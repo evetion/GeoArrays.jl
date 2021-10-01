@@ -49,7 +49,7 @@ function bbox_to_affine(size::Tuple{Integer,Integer}, bbox::NamedTuple{(:min_x, 
     AffineMap(
         SMatrix{2,2}(float(bbox.max_x - bbox.min_x) / size[1], 0, 0, float(bbox.max_y - bbox.min_y) / size[2]),
         SVector(float(bbox.min_x), float(bbox.min_y))
-        )
+    )
 end
 
 """Set geotransform of `GeoArray` by specifying a bounding box.
@@ -105,4 +105,68 @@ function flipud!(ga::GeoArray)
 
     ga.f = f
     ga
+end
+
+"""Check bbox overlapping
+
+Return true if two bboxes overlap.
+"""
+function bbox_overlap(
+    bbox_a::NamedTuple{(:min_x, :min_y, :max_x, :max_y)},
+    bbox_b::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
+
+    # Check if bboxes are valid
+    if (bbox_a.min_x >= bbox_a.max_x) ||
+        (bbox_a.min_y >= bbox_a.max_y)
+        error("Invalid bbox (min >= max)", bbox_a)
+    end
+    if (bbox_b.min_x >= bbox_b.max_x) ||
+        (bbox_b.min_y >= bbox_b.max_y)
+        error("Invalid bbox (min >= max)", bbox_b)
+    end
+
+    # Check if bboxes overlap
+    if (bbox_a.max_x < bbox_b.min_x) ||
+        (bbox_a.max_y < bbox_b.min_y) ||
+        (bbox_a.min_x > bbox_b.max_x) ||
+        (bbox_a.min_y > bbox_b.max_y)
+        return false
+    else
+        return true
+    end
+end
+
+"""
+    function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y),Tuple{Float64,Float64,Float64,Float64}})
+
+Crop input GeoArray by coordinates (box or another GeoArray). If the coordinates range is larger than the GeoArray, only the overlapping part is given in the result.
+"""
+function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
+    # Check if ga and cbox overlap
+    if !bbox_overlap(bbox(ga), cbox)
+        error("GeoArray and crop box do not overlap")
+    end
+    # Check extent and get bbox indices
+    ga_x, ga_y, = size(ga)
+    i_min_x, i_min_y = indices(ga, [cbox.min_x, cbox.max_y])
+    i_max_x, i_max_y = indices(ga, [cbox.max_x, cbox.min_y])
+
+    # Determine indices for crop area
+    i_min_x = max(i_min_x, 1)
+    i_max_x = min(i_max_x, ga_x)
+    i_min_y = max(i_min_y, 1)
+    i_max_y = min(i_max_y, ga_y)
+
+    # Subset and return GeoArray
+    return ga[i_min_x:i_max_x,i_min_y:i_max_y,:]
+end
+
+function crop(ga::GeoArray, cga::GeoArray)
+    # Check if ga and crop ga CRS are the same
+    if ga.crs != cga.crs
+        error("GeoArrays have different CRS")
+    end
+
+    # Crop
+    return crop(ga, bbox(cga))
 end
