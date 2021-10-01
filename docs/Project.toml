@@ -1,5 +1,6 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+GeoArrays = "2fb1d81b-e6a0-5fc5-82e6-8e06903437ab"
 
 [compat]
 Documenter = "~0.23"

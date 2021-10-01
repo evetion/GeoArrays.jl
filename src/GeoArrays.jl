@@ -18,8 +18,8 @@ include("plot.jl")
 export GeoArray
 
 export coords
-export centercoords
 export indices
+export Vertex, Center
 
 export bbox
 export bbox!
