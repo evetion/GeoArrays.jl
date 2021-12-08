@@ -7,9 +7,9 @@ using RecipesBase
     seriestype := :heatmap
     color := :viridis
 
-    coords = coords(ga, Vertex())
-    x = map(x -> x[1], coords[:, 1])
-    y = map(x -> x[2], coords[end, :])
+    c = coords(ga, Vertex())
+    x = map(x -> x[1], c[:, 1])
+    y = map(x -> x[2], c[end, :])
     z = ga.A[:,:,band]'
 
     # Can't use x/yflip as x/y coords
