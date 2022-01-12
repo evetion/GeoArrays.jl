@@ -1,18 +1,19 @@
+RealOrMissing = Union{Real,Union{Missing,Real}}
 """
-    GeoArray{T::Union{Real,Union{Missing,Real}},A<:AbstractArray{T,3},AM<:AbstractAffineMap,WKT<:GeoFormatTypes.AbstractWellKnownText} <: AbstractArray{T,3}
+    GeoArray{T::RealOrMissing,A<:AbstractArray{T,3}} <: AbstractArray{T,3}
 
 A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based on the axes and a CRS definition to interpret these coordinates into in the real world.
 It's three dimensional and can be seen as a stack (3D) of 2D geospatial rasters (bands), the dimensions are :x, :y, and :bands.
 The AffineMap and CRS (coordinates) only operate on the :x and :y dimensions.
 """
-mutable struct GeoArray{T<:Union{Real,Union{Missing,Real}},A<:AbstractArray{T,3},AM<:AbstractAffineMap,WKT<:GeoFormatTypes.AbstractWellKnownText} <: AbstractArray{T,3}
+mutable struct GeoArray{T<:RealOrMissing,A<:AbstractArray{T,3}} <: AbstractArray{T,3}
     A::A
-    f::AM
-    crs::WKT
+    f::AffineMap
+    crs::GeoFormatTypes.WellKnownText
 end
 
 """
-    GeoArray(A::AbstractArray{T,3} where T <: Union{Real,Union{Missing,Real}})
+    GeoArray(A::AbstractArray{T,3} where T <: RealOrMissing)
 
 Construct a GeoArray from any Array. A default `AffineMap` and `CRS` will be generated.
 
@@ -22,23 +23,23 @@ julia> GeoArray(rand(10,10,1))
 10x10x1 Array{Float64, 3} with AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]) and undefined CRS
 ```
 """
-GeoArray(A::AbstractArray{T,3} where {T<:Union{Real,Union{Missing,Real}}}) = GeoArray(A, geotransform_to_affine(SVector(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)), "")
+GeoArray(A::AbstractArray{T,3} where {T<:RealOrMissing}) = GeoArray(A, geotransform_to_affine(SVector(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)), "")
 """
-    GeoArray(A::AbstractArray{T,3} where T <: Union{Real,Union{Missing,Real}}, f::AffineMap)
+    GeoArray(A::AbstractArray{T,3} where T <: RealOrMissing, f::AffineMap)
 
 Construct a GeoArray from any Array and an `AffineMap` that specifies the coordinates. A default `CRS` will be generated.
 """
-GeoArray(A::AbstractArray{T,3} where {T<:Union{Real,Union{Missing,Real}}}, f::AffineMap) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), ""))
+GeoArray(A::AbstractArray{T,3} where {T<:RealOrMissing}, f::AffineMap) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), ""))
 
 """
-    GeoArray(A::AbstractArray{T,3} where T <: Union{Real,Union{Missing,Real}}, f::AffineMap, crs::String)
+    GeoArray(A::AbstractArray{T,3} where T <: RealOrMissing, f::AffineMap, crs::String)
 
 Construct a GeoArray from any Array and an `AffineMap` that specifies the coordinates and `crs` string in WKT format.
 """
-GeoArray(A::AbstractArray{T,3} where {T<:Union{Real,Union{Missing,Real}}}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs))
+GeoArray(A::AbstractArray{T,3} where {T<:RealOrMissing}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs))
 
 """
-    GeoArray(A::AbstractArray{T,2} where T <: Union{Real,Union{Missing,Real}})
+    GeoArray(A::AbstractArray{T,2} where T <: RealOrMissing)
 
 Construct a GeoArray from any Matrix, a third singleton dimension will be added automatically.
 
@@ -48,14 +49,14 @@ julia> GeoArray(rand(10,10))
 10x10x1 Array{Float64, 3} with AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]) and undefined CRS
 ```
 """
-GeoArray(A::AbstractArray{T,2} where {T<:Union{Real,Union{Missing,Real}}}, args...) = GeoArray(reshape(A, size(A)..., 1), args...)
+GeoArray(A::AbstractArray{T,2} where {T<:RealOrMissing}, args...) = GeoArray(reshape(A, size(A)..., 1), args...)
 
 """
-    GeoArray(A::AbstractArray{T,3} where T <: Union{Real,Union{Missing,Real}}, x::AbstractRange, y::AbstractRange, args...)
+    GeoArray(A::AbstractArray{T,3} where T <: RealOrMissing, x::AbstractRange, y::AbstractRange, args...)
 
 Construct a GeoArray any Array and it's coordinates from `AbstractRange`s for each dimension.
 """
-function GeoArray(A::AbstractArray{T,3} where {T<:Union{Real,Union{Missing,Real}}}, x::AbstractRange, y::AbstractRange, args...)
+function GeoArray(A::AbstractArray{T,3} where {T<:RealOrMissing}, x::AbstractRange, y::AbstractRange, args...)
     size(A)[1:2] != (length(x), length(y)) && error("Size of `GeoArray` $(size(A)) does not match size of (x,y): $((length(x), length(y))). Note that this function takes *center coordinates*.")
     f = unitrange_to_affine(x, y)
     GeoArray(A, f, args...)
