@@ -1,7 +1,7 @@
 name = "GeoArrays"
 uuid = "2fb1d81b-e6a0-5fc5-82e6-8e06903437ab"
 authors = ["Maarten Pronk <git@evetion.nl>"]
-version = "0.6.0"
+version = "0.7.0"
 
 [deps]
 ArchGDAL = "c9ce4bd3-c3d5-55b8-8973-c0e20141b8c3"

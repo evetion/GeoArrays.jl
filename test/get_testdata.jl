@@ -29,5 +29,5 @@ for f in remotefiles
     currdir = dirname(currfile)
     isdir(currdir) || mkpath(currdir)
     # download the file
-    isfile(currfile) || download(REPO_URL*f*"?raw=true", currfile)
+    isfile(currfile) || download(REPO_URL * f * "?raw=true", currfile)
 end
