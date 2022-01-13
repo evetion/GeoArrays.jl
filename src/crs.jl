@@ -33,7 +33,7 @@ function str2wkt(crs_string::AbstractString)
         return epsg2wkt(epsg_code)
     else
         # Fallback method to validate string
-        wkt =  wkt2wkt(crs_string)
+        wkt = wkt2wkt(crs_string)
         return wkt
     end
 end
