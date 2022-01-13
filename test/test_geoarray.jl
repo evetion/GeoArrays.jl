@@ -5,8 +5,17 @@ using CoordinateTransformations
     @test length(x[1]) == 1
     @test length(x[1, 2]) == 5
     @test size(x[1:3, 1:3]) == (3, 3, 5)
-    @test size(x[1:3, 1:3 ,1:3]) == (3, 3, 3)
+    @test size(x[1:3, 1:3, 1:3]) == (3, 3, 3)
 end
+
+@testset "Concrete" begin
+    ga = GeoArray(rand(5, 5))
+    @test isconcretetype(typeof(ga))
+    @test isconcretetype(typeof(ga.A))
+    @test isconcretetype(typeof(ga.f))
+    @test isconcretetype(typeof(ga.crs))
+end
+
 @testset "Reading rasters" begin
     ga = GeoArrays.read(joinpath(testdatadir, "data/utmsmall.tif"))
     @test bbox(ga) == (min_x = 440720.0, min_y = 3.74532e6, max_x = 446720.0, max_y = 3.75132e6)
@@ -25,21 +34,21 @@ end
 end
 
 @testset "GeoArray constructors" begin
-    x, y = range(4, stop=8.0, length=10), range(0, stop=1, length=9)
+    x, y = range(4, stop = 8.0, length = 10), range(0, stop = 1, length = 9)
     ga2 = GeoArray(rand(10, 9), x, y)
     ga2 = GeoArray(rand(10, 9), x, y, "")
     ga3 = GeoArray(rand(10, 9, 8), x, y)
     ga3 = GeoArray(rand(10, 9, 8), x, y, "")
     for i in 1:length(x), j in 1:length(y)
-        @test GeoArrays.coords(ga2, [i,j]) ≈ [x[i],y[j]]
+        @test GeoArrays.coords(ga2, [i, j]) ≈ [x[i], y[j]]
     end
     for i in 1:length(x), j in 1:length(y)
-        @test GeoArrays.coords(ga3, [i,j]) ≈ [x[i],y[j]]
+        @test GeoArrays.coords(ga3, [i, j]) ≈ [x[i], y[j]]
     end
-    x, y = range(4, stop=8.0, length=11), range(0, stop=1, length=9)
+    x, y = range(4, stop = 8.0, length = 11), range(0, stop = 1, length = 9)
     @test_throws ErrorException GeoArray(rand(10, 9), x, y)
 end
-        
+
 @testset "Conversions" begin
     ga = GeoArray(rand(1:32000, 5, 5))
     GeoArrays.write!(joinpath(testdatadir, "test_conversion.tif"), ga)
@@ -49,9 +58,9 @@ end
 end
 
 @testset "Similar" begin
-    ga = GeoArrays.read(joinpath(testdatadir, remotefiles[end - 1]))
-    gg = ga[250:end - 2,250:end - 250]
-    @test gg[1,1] == ga[250,250]
+    ga = GeoArrays.read(joinpath(testdatadir, remotefiles[end-1]))
+    gg = ga[250:end-2, 250:end-250]
+    @test gg[1, 1] == ga[250, 250]
     @test coords(gg, [1, 1]) == coords(ga, [250, 250])
     GeoArrays.write!("test.tif", gg)
 end
