@@ -1,4 +1,5 @@
-RealOrMissing = Union{Real,Union{Missing,Real}}
+const RealOrMissing = Union{Real,Union{Missing,Real}}
+
 """
     GeoArray{T::RealOrMissing,A<:AbstractArray{T,3}} <: AbstractArray{T,3}
 
