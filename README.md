@@ -81,11 +81,11 @@ julia> ga_band = GeoArrays.read(fn, masked=false, band=2)
 
 ### Using coordinates
 
-`GeoArray` has geographical coordinates for all array elements (pixels). They can be retrieved with the `coords` function.
+`GeoArray` has geographical coordinates for all array elements (pixels). They can be retrieved with the `GeoArrays.coords` function.
 
 ```julia
 # Find coordinates by index
-julia> coords(geoarray, [1,1])
+julia> GeoArrays.coords(geoarray, [1,1])
 2-element StaticArrays.SArray{Tuple{2},Float64,1,2}:
  440720.0
       3.75132e6
@@ -95,7 +95,7 @@ All coordinates (tuples) are obtained when omitting the index parameter.
 
 ```julia
 # Find all coordinates
-julia> coords(geoarray)
+julia> GeoArrays.coords(geoarray)
 101×101 Array{StaticArrays.SArray{Tuple{2},Float64,1,2},2}:
  [440720.0, 3.75132e6]  [440720.0, 3.75126e6]  [440720.0, 3.7512e6] ...
  ...
