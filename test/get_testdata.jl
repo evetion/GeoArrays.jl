@@ -1,3 +1,4 @@
+using Downloads
 const testdatadir = joinpath(dirname(@__FILE__), "data")
 
 REPO_URL = "https://github.com/yeesian/ArchGDALDatasets/blob/master/"
@@ -29,5 +30,5 @@ for f in remotefiles
     currdir = dirname(currfile)
     isdir(currdir) || mkpath(currdir)
     # download the file
-    isfile(currfile) || download(REPO_URL * f * "?raw=true", currfile)
+    isfile(currfile) || Download.download(REPO_URL * f * "?raw=true", currfile)
 end
