@@ -1,7 +1,7 @@
 name = "GeoArrays"
 uuid = "2fb1d81b-e6a0-5fc5-82e6-8e06903437ab"
 authors = ["Maarten Pronk <git@evetion.nl>"]
-version = "0.7.1"
+version = "0.7.2"
 
 [deps]
 ArchGDAL = "c9ce4bd3-c3d5-55b8-8973-c0e20141b8c3"
@@ -18,4 +18,4 @@ GeoFormatTypes = "0.3"
 GeoStatsBase = "0.21 - 0.25"
 RecipesBase = "0.7, 0.8, 1.0"
 StaticArrays = "0.12, 1.0"
-julia = "1.5 - 1.8"
+julia = "1.5 - 1"
