@@ -97,14 +97,10 @@ function Base.getindex(ga::GeoArray, i::AbstractRange, j::AbstractRange, k::Unio
     A = getindex(ga.A, i, j, k)
     x, y = first(i) - 1, first(j) - 1
     t = ga.f(SVector(x, y))
-    GeoArray(A, AffineMap(ga.f.linear, t), ga.crs)
+    l = ga.f.linear * SMatrix{2,2}([step(i) 0; 0 step(j)])
+    GeoArray(A, AffineMap(l, t), ga.crs)
 end
-function Base.getindex(ga::GeoArray, i::AbstractRange, j::AbstractRange)
-    A = getindex(ga.A, i, j, :)
-    x, y = first(i) - 1, first(j) - 1
-    t = ga.f(SVector(x, y))
-    GeoArray(A, AffineMap(ga.f.linear, t), ga.crs)
-end
+Base.getindex(ga::GeoArray, i::AbstractRange, j::AbstractRange) = Base.getindex(ga, i, j, :)
 
 Base.getindex(ga::GeoArray, I::Vararg{<:Integer,2}) = getindex(ga.A, I..., :)
 Base.getindex(ga::GeoArray, I::Vararg{<:Integer,3}) = getindex(ga.A, I...)
@@ -169,8 +165,8 @@ See `indices` for the inverse function.
 function coords(ga::GeoArray, p::SVector{2,<:Integer}, strategy::AbstractStrategy)
     SVector{2}(ga.f(p .- strategy.offset))
 end
-coords(ga::GeoArray, p::Vector{<:Integer}, strategy::AbstractStrategy = Center()) = coords(ga, SVector{2}(p), strategy)
-coords(ga::GeoArray, p::Tuple{<:Integer,<:Integer}, strategy::AbstractStrategy = Center()) = coords(ga, SVector{2}(p), strategy)
+coords(ga::GeoArray, p::Vector{<:Integer}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p), strategy)
+coords(ga::GeoArray, p::Tuple{<:Integer,<:Integer}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p), strategy)
 
 """
     indices(ga::GeoArray, p::SVector{2,<:AbstractFloat}, strategy::AbstractStrategy)
@@ -182,19 +178,19 @@ See `coords` for the inverse function.
 function indices(ga::GeoArray, p::SVector{2,<:AbstractFloat}, strategy::AbstractStrategy)
     round.(Int, inv(ga.f)(p) .+ strategy.offset)::SVector{2,Int}
 end
-indices(ga::GeoArray, p::Vector{<:AbstractFloat}, strategy::AbstractStrategy = Center()) = indices(ga, SVector{2}(p), strategy)
-indices(ga::GeoArray, p::Tuple{<:AbstractFloat,<:AbstractFloat}, strategy::AbstractStrategy = Center()) = indices(ga, SVector{2}(p), strategy)
+indices(ga::GeoArray, p::Vector{<:AbstractFloat}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
+indices(ga::GeoArray, p::Tuple{<:AbstractFloat,<:AbstractFloat}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
 
 
 # Generate coordinates for complete GeoArray
-function coords(ga::GeoArray, strategy::AbstractStrategy = Center())
+function coords(ga::GeoArray, strategy::AbstractStrategy=Center())
     (ui, uj) = size(ga)[1:2]
     extra = typeof(strategy) == Center ? 0 : 1
     [coords(ga, SVector{2}(i, j), strategy) for i in 1:ui+extra, j in 1:uj+extra]::Matrix{SVector{2,Float64}}
 end
 
 # Generate coordinates for one dimension of a GeoArray
-function coords(ga::GeoArray, dim::Symbol, strategy::AbstractStrategy = Center())
+function coords(ga::GeoArray, dim::Symbol, strategy::AbstractStrategy=Center())
     if is_rotated(ga)
         error("This method cannot be used for a rotated GeoArray")
     end
