@@ -1,11 +1,13 @@
 using RecipesBase
 
-@recipe function f(ga::GeoArray; band = 1)
+@recipe function f(ga::GeoArray; band=1)
     xflip --> false
     yflip --> false
     aspect_ratio --> 1
     seriestype := :heatmap
     color := :viridis
+
+    is_rotated(ga) && (ga = straighten(ga))
 
     c = GeoArrays.coords(ga, Vertex())
     x = map(x -> x[1], c[:, 1])
@@ -15,11 +17,11 @@ using RecipesBase
     # Can't use x/yflip as x/y coords
     # have to be sorted for Plots
     if ga.f.linear[1] < 0
-        z = reverse(z, dims = 2)
+        z = reverse(z, dims=2)
         reverse!(x)
     end
     if ga.f.linear[4] < 0
-        z = reverse(z, dims = 1)
+        z = reverse(z, dims=1)
         reverse!(y)
     end
 
