@@ -7,7 +7,7 @@ function get_affine_map(ds::ArchGDAL.IDataset)
         gt = ArchGDAL.getgeotransform(ds)
     catch y
         @warn y.msg
-        gt = [0.,1.,0.,0.,0.,1.]
+        gt = [0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
     end
     geotransform_to_affine(gt)
 end
@@ -28,19 +28,28 @@ end
 
 """Check wether the AffineMap of a GeoArray contains rotations."""
 function is_rotated(ga::GeoArray)
-    ga.f.linear[2] != 0. || ga.f.linear[3] != 0.
+    ga.f.linear[2] != 0.0 || ga.f.linear[3] != 0.0
 end
 
 function bbox(ga::GeoArray)
-    ax, ay = ga.f(SVector(0, 0))
-    bx, by = ga.f(SVector(size(ga)[1:2]))
-    (min_x = min(ax, bx), min_y = min(ay, by), max_x = max(ax, bx), max_y = max(ay, by))
+    i, j, _ = size(ga)
+    if is_rotated(ga)
+        ax, ay = ga.f(SVector(0, 0))
+        bx, by = ga.f(SVector(i, 0))
+        cx, cy = ga.f(SVector(0, j))
+        dx, dy = ga.f(SVector(i, j))
+        (min_x=min(ax, bx, cx, dx), min_y=min(ay, by, cy, dy), max_x=max(ax, bx, cx, dx), max_y=max(ay, by, cy, dy))
+    else
+        ax, ay = ga.f(SVector(0, 0))
+        bx, by = ga.f(SVector(i, j))
+        (min_x=min(ax, bx), min_y=min(ay, by), max_x=max(ax, bx), max_y=max(ay, by))
+    end
 end
 
 function unitrange_to_affine(x::StepRangeLen, y::StepRangeLen)
     δx, δy = float(step(x)), float(step(y))
     AffineMap(
-        SMatrix{2,2}(δx, 0., 0., δy),
+        SMatrix{2,2}(δx, 0.0, 0.0, δy),
         SVector(x[1] - δx / 2, y[1] - δy / 2)
     )
 end
@@ -64,11 +73,11 @@ function bboxes(ga::GeoArray)
     c = coords(ga, Vertex())
     m, n = size(c)
     cellbounds = Matrix{NamedTuple}(undef, (m - 1, n - 1))
-    for j in 1:n - 1, i in 1:m - 1
-        v = c[i:i + 1, j:j + 1]
+    for j in 1:n-1, i in 1:m-1
+        v = c[i:i+1, j:j+1]
         minx, maxx = extrema(first.(v))
         miny, maxy = extrema(last.(v))
-        cellbounds[i, j] = (min_x = minx, max_x = maxx, min_y = miny, max_y = maxy)
+        cellbounds[i, j] = (min_x=minx, max_x=maxx, min_y=miny, max_y=maxy)
     end
     cellbounds
 end
@@ -117,19 +126,19 @@ function bbox_overlap(
 
     # Check if bboxes are valid
     if (bbox_a.min_x >= bbox_a.max_x) ||
-        (bbox_a.min_y >= bbox_a.max_y)
+       (bbox_a.min_y >= bbox_a.max_y)
         error("Invalid bbox (min >= max)", bbox_a)
     end
     if (bbox_b.min_x >= bbox_b.max_x) ||
-        (bbox_b.min_y >= bbox_b.max_y)
+       (bbox_b.min_y >= bbox_b.max_y)
         error("Invalid bbox (min >= max)", bbox_b)
     end
 
     # Check if bboxes overlap
     if (bbox_a.max_x < bbox_b.min_x) ||
-        (bbox_a.max_y < bbox_b.min_y) ||
-        (bbox_a.min_x > bbox_b.max_x) ||
-        (bbox_a.min_y > bbox_b.max_y)
+       (bbox_a.max_y < bbox_b.min_y) ||
+       (bbox_a.min_x > bbox_b.max_x) ||
+       (bbox_a.min_y > bbox_b.max_y)
         return false
     else
         return true
@@ -158,7 +167,7 @@ function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
     i_max_y = min(i_max_y, ga_y)
 
     # Subset and return GeoArray
-    return ga[i_min_x:i_max_x,i_min_y:i_max_y,:]
+    return ga[i_min_x:i_max_x, i_min_y:i_max_y, :]
 end
 
 function crop(ga::GeoArray, cga::GeoArray)
@@ -169,4 +178,62 @@ function crop(ga::GeoArray, cga::GeoArray)
 
     # Crop
     return crop(ga, bbox(cga))
+end
+
+"""
+    sample!(ga::GeoArray, ga2::GeoArray)
+
+Sample values from ga2 to ga.
+"""
+function sample!(ga::GeoArray, ga2::GeoArray)
+    if ga.crs != ga2.crs
+        error("GeoArrays have different CRS")
+    end
+    wo, ho, zo = size(ga)
+    w, h = size(ga2)[1:2]
+
+    # Compose AffineMap that translates from logical coordinates
+    # in `ga` to logical coordinates in `ga2`
+    x = inv(ga2.f) ∘ ga.f
+
+    for io in 1:wo, jo in 1:ho
+        i, j = round.(Int, x((io, jo)) .+ 0.5)
+        if (1 <= i <= w) && (1 <= j <= h)
+            # Loop over bands
+            for z in 1:zo
+                ga[io, jo, z] = ga2[i, j, z]
+            end
+        end
+    end
+
+    ga
+end
+
+function _sizeof(ga::GeoArray, bbox)
+    x = bbox.max_x - bbox.min_x
+    y = bbox.max_y - bbox.min_y
+    abs.(round.(Int, (x / ga.f.linear[1], y / ga.f.linear[4], size(ga)[3])))
+end
+
+"""
+    straighten(ga::GeoArray)
+
+Straighten a rotated GeoArray, i.e. let its AffineMap only scale the coordinates.
+"""
+function straighten(ga)
+    is_rotated(ga) || return ga
+
+    dtype = eltype(ga)
+    if !(isa(dtype, Union) && dtype.a == Missing)
+        dtype = Union{Missing,dtype}
+    end
+
+    A = Array{dtype}(undef, _sizeof(ga, bbox(ga)))
+    fill!(A, missing)
+    gar = GeoArray(A)
+
+    bbox!(gar, bbox(ga))
+    gar.crs = ga.crs
+    GeoArrays.sample!(gar, ga)
+    gar
 end
