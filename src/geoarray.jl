@@ -10,7 +10,7 @@ The AffineMap and CRS (coordinates) only operate on the :x and :y dimensions.
 mutable struct GeoArray{T<:RealOrMissing,A<:AbstractArray{T,3}} <: AbstractArray{T,3}
     A::A
     f::CoordinateTransformations.AffineMap{StaticArrays.SMatrix{2,2,Float64,4},StaticArrays.SVector{2,Float64}}
-    crs::GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS,String}
+    crs::GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS}
 end
 
 """
@@ -39,7 +39,7 @@ Construct a GeoArray from any Array and an `AffineMap` that specifies the coordi
 """
 GeoArray(A::AbstractArray{T,3} where {T<:RealOrMissing}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs))
 
-GeoArray(A::AbstractArray{T,3} where {T<:RealOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS,String}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs)
+GeoArray(A::AbstractArray{T,3} where {T<:RealOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs)
 
 """
     GeoArray(A::AbstractArray{T,2} where T <: RealOrMissing)

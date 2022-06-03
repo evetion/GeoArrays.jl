@@ -38,7 +38,7 @@ AffineMap([60.0 0.0; 0.0 -60.0], [440720.0, 3.75132e6])
 
 # WKT projection string
 julia> geoarray.crs
-GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS,String}(GeoFormatTypes.CRS(), "PROJCS[\"NAD27 / UTM zone 11N\",GEOGCS[\"NAD27\",DATUM[\"North_American_Datum_1927\",SPHEROID[\"Clarke 1866\",6378206.4,294.978698213898,AUTHORITY[\"EPSG\",\"7008\"]],AUTHORITY[\"EPSG\",\"6267\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4267\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-117],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"26711\"]]")
+GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS}(GeoFormatTypes.CRS(), "PROJCS[\"NAD27 / UTM zone 11N\",GEOGCS[\"NAD27\",DATUM[\"North_American_Datum_1927\",SPHEROID[\"Clarke 1866\",6378206.4,294.978698213898,AUTHORITY[\"EPSG\",\"7008\"]],AUTHORITY[\"EPSG\",\"6267\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4267\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",-117],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"26711\"]]")
 ```
 
 ### Writing to GeoTIFF
@@ -66,7 +66,7 @@ julia> @time ga = GeoArrays.read(fn, masked=false)
 
 ### Reading bands
 
-GeoTIFFs can be large, with several bands, one can read. 
+GeoTIFFs can be large, with several bands, one can read.
 
 When working with large rasters, e.g. with satellite images that can be GB in size, it is useful to be able to read only one band (or a selection of them) to `GeoArray`. When using `read`, one can specify the band.
 
@@ -119,7 +119,7 @@ julia> trans = Translation(100, 0)
 julia> compose!(ga, trans)
 ```
 
-When GeoArrays have the same dimensions, AffineMap and CRS, addition, subtraction, multiplication and division can be used. 
+When GeoArrays have the same dimensions, AffineMap and CRS, addition, subtraction, multiplication and division can be used.
 
 ```julia
 # Math with GeoArrays (- + * /)
