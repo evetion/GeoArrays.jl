@@ -50,7 +50,7 @@ Create a random `GeoArray` and write it to a GeoTIFF file.
 julia> ga = GeoArray(rand(100,200))
 julia> bbox!(ga, (min_x=2., min_y=51., max_x=5., max_y=54.))  # roughly the Netherlands
 julia> epsg!(ga, 4326)  # in WGS84
-julia> GeoArrays.write!("test.tif", ga)
+julia> GeoArrays.write("test.tif", ga)
 ```
 
 ### Streaming support

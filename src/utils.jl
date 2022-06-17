@@ -11,7 +11,7 @@ function find_shortname(fn::AbstractString)
             return v
         end
     end
-    error("Cannot determine GDAL Driver for $fn")
+    ArchGDAL.extensiondriver(fn)
 end
 
 const GMF = Dict(
@@ -19,7 +19,7 @@ const GMF = Dict(
     :GMF_PER_DATASET => 0x02,
     :GMF_ALPHA => 0x04,
     :GMF_NODATA => 0x08,
-    )
+)
 
 """Takes bitwise OR-ed set of status flags and returns flags."""
 function mask_flags(flags::Int32)
@@ -68,6 +68,14 @@ end
 function getmetadata(ds::ArchGDAL.RasterDataset)
     domains = ArchGDAL.metadatadomainlist(ds.ds)
     values = getmetadata.(Ref(ds), domains)
-    replace!(domains, ""=>"ROOT")
-    nt = Dict(Pair.(domains, values))
+    replace!(domains, "" => "ROOT")
+    Dict(Pair.(domains, values))
+end
+
+function stringlist(dict::Dict{String,String})
+    sv = Vector{String}()
+    for (k, v) in pairs(dict)
+        push!(sv, uppercase(string(k)) * "=" * string(v))
+    end
+    return sv
 end

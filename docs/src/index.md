@@ -1,10 +1,13 @@
+```@meta
+CurrentModule = GeoArrays
+```
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://evetion.github.io/GeoArrays.jl/dev) [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://evetion.github.io/GeoArrays.jl/stable) [![CI](https://github.com/evetion/GeoArrays.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/evetion/GeoArrays.jl/actions/workflows/CI.yml) [![codecov](https://codecov.io/gh/evetion/GeoArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/evetion/GeoArrays.jl)
 
 # GeoArrays
 
 Simple geographical raster interaction built on top of [ArchGDAL](https://github.com/yeesian/ArchGDAL.jl/), [GDAL](https://github.com/JuliaGeo/GDAL.jl) and [CoordinateTransformations](https://github.com/FugroRoames/CoordinateTransformations.jl).
 
-A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based on the axes and a CRS definition to interpret these coordinates into in the real world. It's three dimensional and can be seen as a stack (3D) of 2D geospatial rasters (bands), the dimensions are :x, :y, and :bands. The AffineMap and CRS (coordinates) only operate on the :x and :y dimensions.
+A [`GeoArray`](@ref) is an AbstractArray, an AffineMap for calculating coordinates based on the axes and a CRS definition to interpret these coordinates into in the real world. It's three dimensional and can be seen as a stack (3D) of 2D geospatial rasters (bands), the dimensions are :x, :y, and :bands. The AffineMap and CRS (coordinates) only operate on the :x and :y dimensions.
 
 This packages takes its inspiration from Python's [rasterio](https://github.com/mapbox/rasterio).
 
@@ -24,7 +27,7 @@ Load the `GeoArrays` package.
 julia> using GeoArrays
 ```
 
-Read a GeoTIFF file and display its information, i.e. AffineMap and projection (CRS).
+Read a GeoTIFF file, using [`GeoArrays.read`](@ref) and display its information, i.e. AffineMap and projection (CRS).
 
 ```julia
 # Read TIF file
@@ -43,14 +46,14 @@ GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS}(GeoFormatTypes.CRS(), "PROJCS[\
 
 ### Writing to GeoTIFF
 
-Create a random `GeoArray` and write it to a GeoTIFF file.
+Create a random `GeoArray` and [`GeoArrays.write`](@ref) it to a GeoTIFF file. Setting the bounding box and the crs can be set by using [`bbox!`](@ref) and [`epsg!`](@ref).
 
 ```julia
 # Create, reference and write a TIFF
 julia> ga = GeoArray(rand(100,200))
 julia> bbox!(ga, (min_x=2., min_y=51., max_x=5., max_y=54.))  # roughly the Netherlands
 julia> epsg!(ga, 4326)  # in WGS84
-julia> GeoArrays.write!("test.tif", ga)
+julia> GeoArrays.write("test.tif", ga)
 ```
 
 ### Streaming support
@@ -68,7 +71,7 @@ julia> @time ga = GeoArrays.read(fn, masked=false)
 
 GeoTIFFs can be large, with several bands, one can read.
 
-When working with large rasters, e.g. with satellite images that can be GB in size, it is useful to be able to read only one band (or a selection of them) to `GeoArray`. When using `read`, one can specify the band.
+When working with large rasters, e.g. with satellite images that can be GB in size, it is useful to be able to read only one band (or a selection of them) to `GeoArray`. When using [`read`](@ref), one can specify the band.
 
 ```julia
 # Get file
@@ -81,7 +84,7 @@ julia> ga_band = GeoArrays.read(fn, masked=false, band=2)
 
 ### Using coordinates
 
-`GeoArray` has geographical coordinates for all array elements (pixels). They can be retrieved with the `coords` function.
+`GeoArray` has geographical coordinates for all array elements (pixels). They can be retrieved with the [`coords`](@ref) function.
 
 ```julia
 # Find coordinates by index
@@ -101,7 +104,7 @@ julia> coords(geoarray)
  ...
 ```
 
-The operation can be reversed, i.e. row and column index can be computed from coordinates with the `indices` function.
+The operation can be reversed, i.e. row and column index can be computed from coordinates with the [`indices`](@ref) function.
 
 ```julia
 # Find index by coordinates
@@ -129,7 +132,7 @@ julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
 
 ### Interpolation
 
-GeoArrays can be interpolated with the `interpolate` function.
+GeoArrays can be interpolated with the [`interpolate!`](@ref) function.
 
 ```julia
 julia> using GeoEstimation  # or any esimation solver from the GeoStats ecosystem
