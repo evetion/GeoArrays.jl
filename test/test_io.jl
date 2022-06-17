@@ -71,7 +71,12 @@ end
     end
     @testset "COG" begin
         ga = GeoArray(Array{Union{Missing,Int32}}(rand(1:10, 2048, 2048, 3)))
-        fn = GeoArrays.write("test_cog.tif", ga, 1, "COG")
+        fn = GeoArrays.write(joinpath(tempdir(), "test_cog.tif"), ga, 1, "COG")
+        GeoArrays.read(fn)
+    end
+    @testset "Kwargs" begin
+        ga = GeoArray(rand(100, 200, 3))
+        fn = GeoArrays.write(joinpath(tempdir(), "test.tif"), ga; shortname="COG", nodata=1.0, options=Dict("compression" => "deflate"))
         GeoArrays.read(fn)
     end
 

@@ -143,5 +143,5 @@ function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Real}=not
     fn
 end
 
-write!(args...; kwargs...) = write(args..., kwargs...)
+write!(args...) = write(args...)
 write(fn, ga, nodata=nothing, shortname=find_shortname(fn), options=Dict{String,String}()) = write(fn, ga; nodata=nodata, shortname=shortname, options=options)
