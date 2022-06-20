@@ -95,6 +95,8 @@ function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Real}=not
         data[m] .= nodata
         data = Array{dtype}(data)
         use_nodata = true
+    elseif !isnothing(nodata)
+        use_nodata = true
     end
 
     try

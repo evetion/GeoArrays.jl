@@ -68,10 +68,17 @@ end
         GeoArrays.read(fn)
         fn = GeoArrays.write!(joinpath(tempdir(), "test_nodata.img"), ga, 1)
         GeoArrays.read(fn)
+        ga = GeoArray(fill(0, (100, 200, 3)))
+        fn = GeoArrays.write(joinpath(tempdir(), "test_nodata_hardcoded.tiff"), ga; nodata=0)
+        ga = GeoArrays.read(fn)
+        @test all(ismissing.(ga))
     end
     @testset "COG" begin
         ga = GeoArray(Array{Union{Missing,Int32}}(rand(1:10, 2048, 2048, 3)))
-        fn = GeoArrays.write(joinpath(tempdir(), "test_cog.tif"), ga, 1, "COG")
+        fn = GeoArrays.write(joinpath(testdatadir, "test_cog.tif"), ga; nodata=-1, shortname="COG", options=Dict("COMPRESSION" => "ZSTD"))
+        GeoArrays.read(fn)
+        ga = GeoArray(Array{Union{Missing,Float32}}(rand(1:10, 2048, 2048, 3)))
+        fn = GeoArrays.write(joinpath(testdatadir, "test_cogf.tif"), ga; nodata=Inf, shortname="COG", options=Dict("COMPRESSION" => "ZSTD"))
         GeoArrays.read(fn)
     end
     @testset "Kwargs" begin
