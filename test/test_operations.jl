@@ -37,8 +37,15 @@ using CoordinateTransformations
         @test typeof(g / h).name.name == :GeoArray
 
         g = GeoArray([1 missing; 2 3])
-        @inferred gg = coalesce(g, 0)
-        @test gg.A[2] == 0
-        @test eltype(gg) == Int
+        @inferred coalesce(g, 0)
+        gg = coalesce(g, 0)
+        @test gg.A[3] == 0
+        @test eltype(gg) == Int64
+
+        g = GeoArray([1.0 missing; 2 3])
+        @inferred coalesce(g, Inf)
+        gg = coalesce(g, Inf)
+        @test gg.A[3] == Inf
+        @test eltype(gg) == Float64
     end
 end
