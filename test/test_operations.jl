@@ -35,5 +35,10 @@ using CoordinateTransformations
         @test typeof(g + h).name.name == :GeoArray
         @test typeof(g * h).name.name == :GeoArray
         @test typeof(g / h).name.name == :GeoArray
+
+        g = GeoArray([1 missing; 2 3])
+        @inferred gg = coalesce(g, 0)
+        @test gg.A[2] == 0
+        @test eltype(gg) == Int
     end
 end
