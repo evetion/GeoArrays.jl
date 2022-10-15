@@ -6,10 +6,15 @@ Read a GeoArray from `fn` by using GDAL. The nodata values are automatically set
 unless `masked` is set to `false`. In that case, reading is lazy, but nodata values have to be
 converted manually later on. The `band` argument can be used to only read that band, and is passed
 to the `getindex` as the third dimension selector and can be any valid indexer.
+
+It's possible to read from virtual filesystems, such as S3, or to provide specific driver
+pre and postfixes to read NetCDF, HDF4 and HDF5.
+
+    read("/vsicurl/https://github.com/OSGeo/gdal/blob/master/autotest/alg/data/2by2.tif?raw=true")
+    read("HDF5:"/path/to/file.hdf5":subdataset")
 """
 function read(fn::AbstractString; masked::Bool=true, band=nothing)
-    isfile(fn) || error("File not found.")
-    # dataset = ArchGDAL.unsafe_read(fn)
+    startswith(fn, "/vsi") || occursin(":", fn) || isfile(fn) || error("File not found.")
     dataset = ArchGDAL.readraster(fn)
     am = get_affine_map(dataset.ds)
     wkt = ArchGDAL.getproj(dataset)

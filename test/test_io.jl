@@ -86,5 +86,12 @@ end
         fn = GeoArrays.write(joinpath(tempdir(), "test.tif"), ga; shortname="COG", nodata=1.0, options=Dict("compression" => "deflate"))
         GeoArrays.read(fn)
     end
-
+    @testset "NetCDF" begin
+        ga = GeoArrays.read("NetCDF:$(joinpath(testdatadir, "netcdf", "sentinel5p_fake.nc")):my_var")
+        @test size(ga) == (61, 89, 1)
+    end
+    @testset "Virtual" begin
+        ga = GeoArrays.read("/vsicurl/https://github.com/OSGeo/gdal/blob/master/autotest/alg/data/2by2.tif?raw=true")
+        @test size(ga) == (2, 2, 1)
+    end
 end
