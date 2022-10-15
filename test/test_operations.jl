@@ -47,5 +47,8 @@ using CoordinateTransformations
         gg = coalesce(g, Inf)
         @test gg.A[3] == Inf
         @test eltype(gg) == Float64
+
+        g = GeoArray(ones(10, 10))
+        @test sum(g) == 100
     end
 end
