@@ -70,6 +70,7 @@ Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{<:GeoArray}) = IndexCartesian()
 Base.similar(ga::GeoArray, t::Type) = GeoArray(similar(ga.A, t), ga.f, ga.crs)
 Base.iterate(ga::GeoArray) = iterate(ga.A)
+Base.iterate(ga::GeoArray, state) = iterate(ga.A, state)
 Base.length(ga::GeoArray) = length(ga.A)
 Base.parent(ga::GeoArray) = ga.A
 Base.eltype(::Type{GeoArray{T}}) where {T} = T
