@@ -39,8 +39,8 @@ function str2wkt(crs_string::AbstractString)
 end
 
 "Set CRS on GeoArray by epsgcode"
-epsg!(ga::GeoArray, epsgcode::Int) = crs!(ga, EPSG(epsgcode))
-epsg!(ga::GeoArray, epsgstring::AbstractString) = crs!(ga, EPSG(epsgstring))
+epsg!(ga::GeoArray, epsgcode::Int) = crs!(ga, GFT.EPSG(epsgcode))
+epsg!(ga::GeoArray, epsgstring::AbstractString) = crs!(ga, GFT.EPSG(epsgstring))
 
 function crs!(ga::GeoArray, crs::GFT.CoordinateReferenceSystemFormat)
     ga.crs = convert(GFT.WellKnownText, GFT.CRS(), crs)
