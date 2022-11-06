@@ -187,3 +187,4 @@ julia> plot(ga_sub)
 ![example plot](docs/img/RGB.byte.subset.png)
 
 ### Profile
+You can sample the values along a line in a GeoArray with `profile(ga, linestring)`. The linestring can be any geometry that supports [GeoInterface.jl][https://github.com/JuliaGeo/GeoInterface.jl/].
