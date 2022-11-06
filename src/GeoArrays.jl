@@ -31,10 +31,12 @@ export compose!
 export bbox_overlap
 export crop
 
-export interpolate!
+export interpolate!, fill!
 
 export epsg!
 export crs!
+
+export profile
 
 export -, +, *, /
 
