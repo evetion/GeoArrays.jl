@@ -237,3 +237,42 @@ function straighten(ga)
     GeoArrays.sample!(gar, ga)
     gar
 end
+
+"""
+    profile(ga::GeoArray, geom; band=1)
+
+Draw a profile along a geometry and return the values in `band` as a vector.
+Geometry should be a GeoInterface compatible LineString.
+"""
+function profile(ga, geom; band=1)
+    values = Vector{eltype(ga)}()
+    GI.isgeometry(geom) || error("`geom` is not a geometry")
+    GI.geomtrait(geom) == GI.LineStringTrait() || error("`geom` is not a LineString")
+
+    for (a, b) in partition(GI.coordinates(geom), 2, 1)
+        profile!(values, ga, a, b, band)
+    end
+    values
+end
+
+function profile!(values, ga, a, b, band)
+    i0, j0 = GeoArrays.indices(ga, a)
+    i1, j1 = GeoArrays.indices(ga, b)
+
+    δx = i1 - i0
+    δy = j1 - j0
+    δe = abs(δy / δx)
+    er = 0.0
+
+    j = j0
+    ystep = δy > 0 ? 1 : -1
+    xstep = i0 < i1 ? 1 : -1
+    for i in i0:xstep:i1
+        push!(values, ga[i, j, band])
+        er += δe
+        if er > 0.5
+            j += ystep
+            er -= 1.0
+        end
+    end
+end

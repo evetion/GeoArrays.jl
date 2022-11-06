@@ -82,6 +82,8 @@ julia> ga_band = GeoArrays.read(fn, masked=false, band=2)
 791x718x1 Array{UInt8, 3} with AffineMap([300.0379266750948 0.0; 0.0 -300.041782729805], [101985.0, 2.826915e6]) and CRS PROJCS["UTM Zone 18, Northern Hemisphere",GEOGCS["Unknown datum based upon the WGS 84 ellipsoid",DATUM["Not_specified_based_on_WGS_84_spheroid",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9122"]]],PROJECTION["Transverse_Mercator"],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",-75],PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],PARAMETER["false_northing",0],UNIT["metre",1,AUTHORITY["EPSG","9001"]],AXIS["Easting",EAST],AXIS["Northing",NORTH]]
 ```
 
+In case there is missing data, the type will be a `Union{Missing, T}`. To convert to a GeoArray without `missing`, you can call `coalesce(ga, value_to_replace_missing)`.
+
 ### Using coordinates
 
 `GeoArray` has geographical coordinates for all array elements (pixels). They can be retrieved with the [`coords`](@ref) function.
@@ -130,9 +132,9 @@ julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
 5x5x1 Array{Float64,3} with AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]) and undefined CRS
 ```
 
-### Interpolation
+### Nodata filling
 
-GeoArrays can be interpolated with the [`interpolate!`](@ref) function.
+GeoArrays with missing data can be filled with the [`fill!`](@ref) function.
 
 ```julia
 julia> using GeoEstimation  # or any esimation solver from the GeoStats ecosystem
@@ -144,7 +146,7 @@ julia> ga.A[2,1] = missing
  0.852882193026649
  0.7137410453351622
  0.5949409082233854
-julia> GeoArrays.interpolate!(ga, IDW(:band => (neighbors=3,)))  # band is the hardcoded variable
+julia> GeoArrays.fill!(ga, IDW(:band => (neighbors=3,)))  # band is the hardcoded variable
 [:, :, 1] =
  0.6760718768442127
  0.7543298370153771
@@ -194,6 +196,8 @@ julia> plot(ga_sub)
 ```
 ![example plot](../img/RGB.byte.subset.png)
 
+### Profile
+You can sample the values along a line in a GeoArray with `profile(ga, linestring)`. The linestring can be any geometry that supports [GeoInterface.jl][https://github.com/JuliaGeo/GeoInterface.jl/].
 
 ## Reference
 ```@autodocs

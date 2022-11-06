@@ -10,7 +10,7 @@ The AffineMap and CRS (coordinates) only operate on the :x and :y dimensions.
 mutable struct GeoArray{T<:RealOrMissing,A<:AbstractArray{T,3}} <: AbstractArray{T,3}
     A::A
     f::CoordinateTransformations.AffineMap{StaticArrays.SMatrix{2,2,Float64,4},StaticArrays.SVector{2,Float64}}
-    crs::GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS}
+    crs::GFT.WellKnownText{GFT.CRS}
 end
 
 """
@@ -39,7 +39,7 @@ Construct a GeoArray from any Array and an `AffineMap` that specifies the coordi
 """
 GeoArray(A::AbstractArray{T,3} where {T<:RealOrMissing}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs))
 
-GeoArray(A::AbstractArray{T,3} where {T<:RealOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs)
+GeoArray(A::AbstractArray{T,3} where {T<:RealOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs)
 
 """
     GeoArray(A::AbstractArray{T,2} where T <: RealOrMissing)
@@ -77,7 +77,7 @@ Base.eltype(::Type{GeoArray{T}}) where {T} = T
 Base.show(io::IO, ::MIME"text/plain", ga::GeoArray) = show(io, ga)
 
 function Base.show(io::IO, ga::GeoArray)
-    crs = GeoFormatTypes.val(ga.crs)
+    crs = GFT.val(ga.crs)
     wkt = length(crs) == 0 ? "undefined CRS" : "CRS $crs"
     print(io, "$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and $(wkt)")
 end
@@ -170,17 +170,17 @@ coords(ga::GeoArray, p::Vector{<:Integer}, strategy::AbstractStrategy=Center()) 
 coords(ga::GeoArray, p::Tuple{<:Integer,<:Integer}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p), strategy)
 
 """
-    indices(ga::GeoArray, p::SVector{2,<:AbstractFloat}, strategy::AbstractStrategy)
+    indices(ga::GeoArray, p::SVector{2,<:Real}, strategy::AbstractStrategy)
 
 Retrieve logical indices of the cell represented by coordinates `p`.
 `strategy` can be used to define whether the coordinates represent the center (`Center`) or the top left corner (`Vertex`) of the cell.
 See `coords` for the inverse function.
 """
-function indices(ga::GeoArray, p::SVector{2,<:AbstractFloat}, strategy::AbstractStrategy)
+function indices(ga::GeoArray, p::SVector{2,<:Real}, strategy::AbstractStrategy)
     round.(Int, inv(ga.f)(p) .+ strategy.offset)::SVector{2,Int}
 end
-indices(ga::GeoArray, p::Vector{<:AbstractFloat}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
-indices(ga::GeoArray, p::Tuple{<:AbstractFloat,<:AbstractFloat}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
+indices(ga::GeoArray, p::Vector{<:Real}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
+indices(ga::GeoArray, p::Tuple{<:Real,<:Real}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
 
 
 # Generate coordinates for complete GeoArray

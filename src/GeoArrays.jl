@@ -1,10 +1,11 @@
 module GeoArrays
 
-using GeoFormatTypes
+import GeoFormatTypes as GFT
 using ArchGDAL
 using CoordinateTransformations
 using StaticArrays
-const GFT = GeoFormatTypes
+import GeoInterface as GI
+using IterTools: partition
 
 include("geoarray.jl")
 include("geoutils.jl")
@@ -30,11 +31,13 @@ export compose!
 export bbox_overlap
 export crop
 
-export interpolate!
+export interpolate!, fill!
 
 export epsg!
 export crs!
 
-export -,+,*,/
+export profile
+
+export -, +, *, /
 
 end
