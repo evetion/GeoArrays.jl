@@ -9,9 +9,15 @@ using RecipesBase
 
     is_rotated(ga) && (ga = straighten(ga))
 
+    # Subsample large images
+    pw, ph = get(plotattributes, :size, (600, 400))
+    w, h = size(ga)
+    sw, sh = max(1, round(Int, w / pw, RoundDown)), max(1, round(Int, h / ph, RoundDown))
+    ga = sw > 1 || sh > 1 ? ga[begin:sw:end, begin:sh:end] : ga
+
     c = GeoArrays.coords(ga, Vertex())
-    x = map(x -> x[1], c[:, 1])
-    y = map(x -> x[2], c[end, :])
+    x = map(first, c[:, 1])
+    y = map(last, c[end, :])
     z = ga.A[:, :, band]'
 
     # Can't use x/yflip as x/y coords
