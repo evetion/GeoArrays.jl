@@ -11,8 +11,10 @@ using RecipesBase
 
     # Subsample large images
     pw, ph = get(plotattributes, :size, (600, 400))
+    ss = get(plotattributes, :scalefactor, 2)
     w, h = size(ga)
-    sw, sh = max(1, round(Int, w / pw, RoundDown)), max(1, round(Int, h / ph, RoundDown))
+    sw, sh = max(1, round(Int, w / (pw * ss), RoundDown)), max(1, round(Int, h / (ph * ss), RoundDown))
+    @debug "Using scalefactor $sw x $sh to subsample GeoArray"
     ga = sw > 1 || sh > 1 ? ga[begin:sw:end, begin:sh:end] : ga
 
     c = GeoArrays.coords(ga, Vertex())
