@@ -21,6 +21,10 @@ using RecipesBase
     x = map(first, c[:, 1])
     y = map(last, c[end, :])
     z = ga.A[:, :, band]'
+    if eltype(z) <: Complex
+        @warn "Plotting real part of Complex GeoArray."
+        z = real.(z)
+    end
 
     # Can't use x/yflip as x/y coords
     # have to be sorted for Plots
