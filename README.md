@@ -163,6 +163,10 @@ julia> plot(ga, band=2)
 
 ![example plot](docs/img/RGB.byte.png)
 
+Note that for larger GeoArrays, only a sample of the data is plotted for performance.
+By default the sample size is twice figure size. You can control this factor by calling `plot(ga, scalefactor=2)`,
+where higher scalefactor yields higher sizes, up to the original GeoArray size.
+
 ### Subsetting arrays
 GeoArrays can be subset by row, column and band using the array subsetting notation, e.g. `ga[100:200, 200:300, 1:2]`.
 
@@ -187,4 +191,4 @@ julia> plot(ga_sub)
 ![example plot](docs/img/RGB.byte.subset.png)
 
 ### Profile
-You can sample the values along a line in a GeoArray with `profile(ga, linestring)`. The linestring can be any geometry that supports [GeoInterface.jl][https://github.com/JuliaGeo/GeoInterface.jl/].
+You can sample the values along a line in a GeoArray with `profile(ga, linestring)`. The linestring can be any geometry that supports [GeoInterface.jl](https://github.com/JuliaGeo/GeoInterface.jl/).

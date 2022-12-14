@@ -229,7 +229,7 @@ function straighten(ga)
     end
 
     A = Array{dtype}(undef, _sizeof(ga, bbox(ga)))
-    fill!(A, missing)
+    Base.fill!(A, missing)
     gar = GeoArray(A)
 
     bbox!(gar, bbox(ga))
