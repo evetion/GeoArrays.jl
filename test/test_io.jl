@@ -94,4 +94,13 @@ end
         ga = GeoArrays.read("/vsicurl/https://github.com/OSGeo/gdal/blob/master/autotest/alg/data/2by2.tif?raw=true")
         @test size(ga) == (2, 2, 1)
     end
+    @testset "Complex numbers" begin
+        for T in (Complex{Int16}, Complex{Int32}, Complex{Float32}, Complex{Float64})
+            ga = GeoArray(rand(T, 1024, 1024, 3))
+            fn = joinpath(tempdir(), "test_complex_$T.tif")
+            GeoArrays.write(fn, ga)
+            ga2 = GeoArrays.read(fn)
+            @test ga2 == ga
+        end
+    end
 end

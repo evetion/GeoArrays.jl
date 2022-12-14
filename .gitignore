@@ -8,3 +8,5 @@ docs/build
 test/*
 !test/*.jl
 Manifest.toml
+docs/src/CHANGELOG.md
+*.tif

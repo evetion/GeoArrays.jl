@@ -74,13 +74,13 @@ end
 
 """
 
-    write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Real}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}())
+    write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}())
 
 Write a GeoArray to `fn`. `nodata` is used to set the nodata value. Any `Missing` values in the GeoArray are converted to this value, otherwise the `typemax` of the element type
 of the array is used. The shortname determines the GDAL driver, like "GTiff", when unset the filename extension is used to derive this driver. The `options` argument may be used
 to pass driver options, such as setting the compression by `Dict("compression"=>"deflate")`.
 """
-function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Real}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}())
+function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}())
     w, h, b = size(ga)
     dtype = eltype(ga)
     data = copy(ga.A)
@@ -95,6 +95,7 @@ function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Real}=not
         catch
             dtype, data = cast_to_gdal(data)
         end
+        dtype <: Complex && error("Nodata is not supported with complex numbers, please use `coalesce` to replace missing values with a valid value.")
         nodata === nothing && (nodata = typemax(dtype))
         m = ismissing.(data)
         data[m] .= nodata
