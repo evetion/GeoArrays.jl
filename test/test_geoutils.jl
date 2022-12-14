@@ -77,6 +77,12 @@ const tbbox = (min_x=440720.0, min_y=3.74532e6, max_x=446720.0, max_y=3.75132e6)
         ga = GeoArray(rand(4, 4))
         values = GeoArrays.profile(ga, LineString())
         @test length(values) == 3
+
+        GI.getgeom(::GI.LineStringTrait, ::LineString) = [[3, 4], [1, 2]]
+        values2 = GeoArrays.profile(ga, LineString())
+        @test length(values2) == 3
+        @test values == reverse(values2)
+
     end
 
 end

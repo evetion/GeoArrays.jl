@@ -261,18 +261,19 @@ function profile!(values, ga, a, b, band)
 
     δx = i1 - i0
     δy = j1 - j0
-    δe = abs(δy / δx)
-    er = 0.0
 
-    j = j0
-    ystep = δy > 0 ? 1 : -1
-    xstep = i0 < i1 ? 1 : -1
-    for i in i0:xstep:i1
-        push!(values, ga[i, j, band])
-        er += δe
-        if er > 0.5
-            j += ystep
-            er -= 1.0
+    if abs(δx) >= abs(δy)
+        j = j0
+        xstep = δx > 0 ? 1 : -1
+        for (d, i) in enumerate(i0:xstep:i1)
+            push!(values, ga[i, j+div((d - 1) * δy, abs(δx), RoundNearest), band])
+        end
+    else
+        i = i0
+        ystep = δy > 0 ? 1 : -1
+        for (d, j) in enumerate(j0:ystep:j1)
+            push!(values, ga[i+div((d - 1) * δx, abs(δy), RoundNearest), j, band])
         end
     end
+    return indices
 end
