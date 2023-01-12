@@ -129,7 +129,7 @@ julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
 GeoArrays with missing data can be filled with the [`fill!`](@ref) function.
 
 ```julia
-julia> using GeoEstimation  # or any esimation solver from the GeoStats ecosystem
+julia> using GeoStatsSolvers  # or any estimation solver from the GeoStats ecosystem
 julia> ga = GeoArray(Array{Union{Missing, Float64}}(rand(5, 1)))
 julia> ga.A[2,1] = missing
 [:, :, 1] =

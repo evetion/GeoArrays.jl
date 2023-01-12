@@ -103,7 +103,7 @@ function Base.getindex(ga::GeoArray, i::AbstractRange, j::AbstractRange, k::Unio
 end
 Base.getindex(ga::GeoArray, i::AbstractRange, j::AbstractRange) = Base.getindex(ga, i, j, :)
 
-Base.getindex(ga::GeoArray, I::Vararg{<:Integer,2}) = getindex(ga.A, I..., :)
+Base.getindex(ga::GeoArray, I::Vararg{<:Integer,2}) = getindex(ga.A, I...)
 Base.getindex(ga::GeoArray, I::Vararg{<:Integer,3}) = getindex(ga.A, I...)
 
 # Getindex and setindex! with floats
@@ -131,7 +131,7 @@ function Base.setindex!(ga::GeoArray, v, I::SVector{2,AbstractFloat})
     ga.A[i, j, :] .= v
 end
 Base.setindex!(ga::GeoArray, v, I::Vararg{<:AbstractFloat,2}) = setindex!(ga, v, SVector{2}(I))
-Base.setindex!(ga::GeoArray, v, I::Vararg{Union{<:Integer,<:AbstractRange{<:Integer}},2}) = setindex!(ga.A, v, I..., :)
+Base.setindex!(ga::GeoArray, v, I::Vararg{Union{<:Integer,<:AbstractRange{<:Integer}},2}) = setindex!(ga.A, v, I...)
 Base.setindex!(ga::GeoArray, v, I::Vararg{Union{<:Integer,<:AbstractRange{<:Integer}},3}) = setindex!(ga.A, v, I...)
 
 # Coordinates and indices

@@ -3,8 +3,8 @@ using CoordinateTransformations
 @testset "Indexing" begin
     x = GeoArray(rand(5, 5, 5))
     @test length(x[1]) == 1
-    @test length(x[1, 2]) == 5
-    @test size(x[1:3, 1:3]) == (3, 3, 5)
+    @test length(x[1, 2, :]) == 5
+    @test size(x[1:3, 1:3, :]) == (3, 3, 5)
     @test size(x[1:3, 1:3, 1:3]) == (3, 3, 3)
 
     @inferred size(x)
@@ -14,6 +14,18 @@ using CoordinateTransformations
     xs = x[1:2:end, 1:2:end]
     @test size(xs) == (5, 5, 2)
     @test bbox(xs) == bbox(x)
+
+    @test_throws BoundsError x[1, 1] = 1
+    x[1, 1, 1] = 1
+    @test x[1, 1, 1] == 1.0
+    x[1, 1, :] .= 2
+    @test x[1, 1, 1] == 2.0
+    @test x[1, 1, 2] == 2.0
+
+    x = GeoArray(rand(5, 5))
+    @test x[1, 1] == x[1, 1, 1]
+    x[1, 1] = 5
+    @test x[1, 1] == 5.0
 end
 
 @testset "Concrete" begin
@@ -73,7 +85,7 @@ end
 @testset "Similar" begin
     ga = GeoArrays.read(joinpath(testdatadir, remotefiles[end-1]))
     gg = ga[250:end-2, 250:end-250]
-    @test gg[1, 1] == ga[250, 250]
+    @test gg[1, 1, :] == ga[250, 250, :]
     @test coords(gg, [1, 1]) == coords(ga, [250, 250])
     GeoArrays.write!("test.tif", gg)
 end
