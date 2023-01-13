@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed iterate specification so `sum` on a GeoArray is correct
 
 [unreleased]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.9...HEAD
+[0.7.12]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.11...v0.7.12
 [0.7.11]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.10...v0.7.11
 [0.7.10]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.9...v0.7.10
 [0.7.9]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.8...v0.7.9
