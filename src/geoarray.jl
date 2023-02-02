@@ -76,6 +76,21 @@ Base.parent(ga::GeoArray) = ga.A
 Base.eltype(::Type{GeoArray{T}}) where {T} = T
 Base.show(io::IO, ::MIME"text/plain", ga::GeoArray) = show(io, ga)
 
+Base.convert(::Type{GeoArray{T}}, ga::GeoArray) where {T} = GeoArray(convert(Array{T}, ga.A), ga.f, ga.crs)
+
+Base.BroadcastStyle(::Type{<:GeoArray}) = Broadcast.ArrayStyle{GeoArray}()
+function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{GeoArray}}, ::Type{ElType}) where {ElType}
+    ga = find_ga(bc)
+    GeoArray(similar(Array{ElType}, axes(bc)), ga.f, ga.crs)
+end
+
+find_ga(bc::Base.Broadcast.Broadcasted) = find_ga(bc.args)
+find_ga(args::Tuple) = find_ga(find_ga(args[1]), Base.tail(args))
+find_ga(x) = x
+find_ga(::Tuple{}) = nothing
+find_ga(a::GeoArray, rest) = a
+find_ga(::Any, rest) = find_ga(rest)
+
 function Base.show(io::IO, ga::GeoArray)
     crs = GFT.val(ga.crs)
     wkt = length(crs) == 0 ? "undefined CRS" : "CRS $crs"
