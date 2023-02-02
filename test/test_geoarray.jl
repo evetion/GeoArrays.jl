@@ -90,6 +90,23 @@ end
     GeoArrays.write!("test.tif", gg)
 end
 
+@testset "Conversion" begin
+    ga = GeoArrays.GeoArray(rand(Int16, 10, 10))
+    gc = convert(GeoArrays.GeoArray{Float32}, ga)
+    @test gc isa GeoArray
+    @test eltype(gc) == Float32
+    @test all(ga .== gc)
+end
+
+@testset "Broadcast" begin
+    ga = GeoArrays.GeoArray(rand(Int16, 10, 10))
+    gc = clamp.(ga, 0, 1)
+    @test gc isa GeoArray
+    @test sum(gc) < length(gc)
+    gd = gc .+ 1
+    @test sum(gd) > length(gc)
+end
+
 @testset "Indexing" begin
     ga = GeoArray(rand(10, 10))
     @inferred ga[Float32(1.0), Float32(2.0)]
