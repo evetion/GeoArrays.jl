@@ -82,6 +82,12 @@ function bboxes(ga::GeoArray)
     cellbounds
 end
 
+function affine!(ga::GeoArray, f::AffineMap)
+    (length(f.translation) == 2 && size(f.linear) == (2, 2)) || error("AffineMap should be two dimensional.")
+    ga.f = f
+    ga
+end
+
 # Extend CoordinateTransformations
 CoordinateTransformations.compose(ga::GeoArray, t2::AffineMap) = CoordinateTransformations.compose(ga.f, t2)
 CoordinateTransformations.compose(ga::GeoArray, t2::LinearMap) = CoordinateTransformations.compose(ga.f, t2)

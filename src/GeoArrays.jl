@@ -31,7 +31,7 @@ export compose!
 export bbox_overlap
 export crop
 
-export interpolate!, fill!
+export interpolate!
 
 export epsg!
 export crs!
