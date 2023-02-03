@@ -93,7 +93,7 @@ find_ga(::Any, rest) = find_ga(rest)
 
 function Base.show(io::IO, ga::GeoArray)
     crs = GFT.val(ga.crs)
-    wkt = length(crs) == 0 ? "undefined CRS" : "CRS $crs"
+    wkt = isempty(crs) ? "undefined CRS" : "CRS $crs"
     print(io, "$(join(size(ga), "x")) $(typeof(ga.A)) with $(ga.f) and $(wkt)")
 end
 
@@ -114,7 +114,7 @@ function Base.getindex(ga::GeoArray, i::AbstractRange, j::AbstractRange, k::Unio
     x, y = first(i) - 1, first(j) - 1
     t = ga.f(SVector(x, y))
     l = ga.f.linear * SMatrix{2,2}([step(i) 0; 0 step(j)])
-    GeoArray(A, AffineMap(l, t), ga.crs)
+    GeoArray(A, AffineMap(l, t), crs(ga))
 end
 Base.getindex(ga::GeoArray, i::AbstractRange, j::AbstractRange) = Base.getindex(ga, i, j, :)
 

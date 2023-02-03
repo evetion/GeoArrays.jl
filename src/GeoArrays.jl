@@ -18,6 +18,7 @@ include("plot.jl")
 
 export GeoArray
 
+export crs, affine
 export coords
 export indices
 export Vertex, Center
@@ -37,7 +38,5 @@ export epsg!
 export crs!
 
 export profile
-
-export -, +, *, /
 
 end

@@ -82,6 +82,10 @@ function bboxes(ga::GeoArray)
     cellbounds
 end
 
+GI.crs(ga::GeoArray) = isempty(GFT.val(crs(ga))) ? nothing : crs(ga)
+crs(ga::GeoArray) = ga.crs
+affine(ga::GeoArray) = ga.f
+
 function affine!(ga::GeoArray, f::AffineMap)
     (length(f.translation) == 2 && size(f.linear) == (2, 2)) || error("AffineMap should be two dimensional.")
     ga.f = f
