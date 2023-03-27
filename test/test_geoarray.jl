@@ -117,3 +117,10 @@ end
     @test ii == i
     @test jj == j
 end
+
+@testset "Ranges" begin
+    ga = GeoArray(rand(10, 10))
+    X, Y = GeoArrays.ranges(ga)
+    @test X == 0.5:1.0:9.5
+    @test Y == 0.5:1.0:9.5
+end

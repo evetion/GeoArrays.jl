@@ -1,5 +1,4 @@
 """
-
     read(fn::AbstractString; masked::Bool=true, band=nothing)
 
 Read a GeoArray from `fn` by using GDAL. The nodata values are automatically set to `Missing`,
@@ -189,7 +188,7 @@ function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=n
         ArchGDAL.create(string("/vsimem/$(gensym())"), driver=ArchGDAL.getdriver("MEM"), width=w, height=h, nbands=b, dtype=dtype) do dataset
             for i = 1:b
                 band = ArchGDAL.getband(dataset, i)
-                ArchGDAL.write!(band, @view data[:, :, i])
+                ArchGDAL.write!(band, data[:, :, i])
                 use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
             end
 
@@ -249,7 +248,7 @@ function ArchGDAL.Dataset(ga::GeoArray)
     dataset = ArchGDAL.create(string("/vsimem/$(gensym())"), driver=ArchGDAL.getdriver("MEM"), width=w, height=h, nbands=b, dtype=dtype)
     for i = 1:b
         band = ArchGDAL.getband(dataset, i)
-        ArchGDAL.write!(band, @view data[:, :, i])
+        ArchGDAL.write!(band, data[:, :, i])
         use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
     end
 

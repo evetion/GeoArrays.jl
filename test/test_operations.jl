@@ -53,12 +53,12 @@ using CoordinateTransformations
     end
 
     @testset "warp" begin
+        ENV["PROJ_NETWORK"] = "ON"
         ga = GeoArray(zeros((360, 180)))
         bbox!(ga, (min_x=-180, min_y=-90, max_x=180, max_y=90))
         crs!(ga, GeoFormatTypes.EPSG(9754))
         ga2 = GeoArrays.warp(ga, Dict("t_srs" => "EPSG:4326+3855"))
         @test sum(ga2) != 0
-
 
         ga = GeoArray(ones((360, 180)))
         ga2 = GeoArray(zeros((180, 90)))
