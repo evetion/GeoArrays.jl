@@ -1,4 +1,4 @@
-function get_affine_map(ds::ArchGDAL.IDataset)
+function get_affine_map(ds::ArchGDAL.AbstractDataset)
     # ArchGDAL fails hard on datasets without
     # an affinemap. GDAL documents that on fail
     # a default affinemap should be returned.
@@ -70,7 +70,7 @@ end
 
 """Generate bounding boxes for GeoArray cells."""
 function bboxes(ga::GeoArray)
-    c = coords(ga, Vertex())
+    c = collect(coords(ga, Vertex()))
     m, n = size(c)
     cellbounds = Matrix{NamedTuple}(undef, (m - 1, n - 1))
     for j in 1:n-1, i in 1:m-1
@@ -165,10 +165,11 @@ function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
     if !bbox_overlap(bbox(ga), cbox)
         error("GeoArray and crop box do not overlap")
     end
+
     # Check extent and get bbox indices
     ga_x, ga_y, = size(ga)
-    i_min_x, i_min_y = indices(ga, [cbox.min_x, cbox.max_y])
-    i_max_x, i_max_y = indices(ga, [cbox.max_x, cbox.min_y])
+    i_min_x, i_min_y = indices(ga, (cbox.min_x, cbox.max_y)).I
+    i_max_x, i_max_y = indices(ga, (cbox.max_x, cbox.min_y)).I
 
     # Determine indices for crop area
     i_min_x = max(i_min_x, 1)
@@ -266,8 +267,8 @@ function profile(ga, geom; band=1)
 end
 
 function profile!(values, ga, a, b, band)
-    i0, j0 = GeoArrays.indices(ga, a)
-    i1, j1 = GeoArrays.indices(ga, b)
+    i0, j0 = GeoArrays.indices(ga, a).I
+    i1, j1 = GeoArrays.indices(ga, b).I
 
     δx = i1 - i0
     δy = j1 - j0

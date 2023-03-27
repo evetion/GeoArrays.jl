@@ -72,10 +72,30 @@ function getmetadata(ds::ArchGDAL.RasterDataset)
     Dict(Pair.(domains, values))
 end
 
-function stringlist(dict::Dict{String,String})
+function stringlist(dict::Dict{String})
     sv = Vector{String}()
     for (k, v) in pairs(dict)
         push!(sv, uppercase(string(k)) * "=" * string(v))
     end
     return sv
 end
+
+function warpstringlist(dict::Dict{String})
+    sv = Vector{String}()
+    for (k, v) in pairs(dict)
+        if v isa Dict
+            for option in stringlist(v)
+                push!(sv, keystring(k))
+                push!(sv, option)
+            end
+        else
+            push!(sv, keystring(k))
+            isempty(v) ? nothing : append!(sv, valuestring(v))
+        end
+    end
+    return sv
+end
+keystring(s) = startswith(s, "-") ? s : string("-", s)
+valuestring(s) = (string(s),)
+valuestring(s::Tuple) = string.(s)
+valuestring(s::Vector) = string.(s)

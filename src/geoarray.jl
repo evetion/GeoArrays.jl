@@ -136,14 +136,14 @@ julia> ga[3.0,3.0]
 ```
 """
 function Base.getindex(ga::GeoArray, I::SVector{2,<:AbstractFloat})
-    (i, j) = indices(ga, I, Center())
-    ga[i, j, :]
+    i = indices(ga, I, Center())
+    ga[i, :]
 end
 Base.getindex(ga::GeoArray, I::Vararg{<:AbstractFloat,2}) = getindex(ga, SVector{2}(I))
 
 function Base.setindex!(ga::GeoArray, v, I::SVector{2,AbstractFloat})
-    i, j = indices(ga, I, Center())
-    ga.A[i, j, :] .= v
+    i = indices(ga, I, Center())
+    ga.A[i, :] .= v
 end
 Base.setindex!(ga::GeoArray, v, I::Vararg{<:AbstractFloat,2}) = setindex!(ga, v, SVector{2}(I))
 Base.setindex!(ga::GeoArray, v, I::Vararg{Union{<:Integer,<:AbstractRange{<:Integer}},2}) = setindex!(ga.A, v, I...)
@@ -173,7 +173,9 @@ struct Vertex <: AbstractStrategy
 end
 
 """
-    coords(ga::GeoArray, p::SVector{2,<:Integer}, strategy::AbstractStrategy)
+    coords(ga::GeoArray, p::SVector{2,<:Integer}, strategy::AbstractStrategy=Center())
+    coords(ga::GeoArray, p::Tuple{<:Integer,<:Integer}, strategy::AbstractStrategy=Center())
+    coords(ga::GeoArray, p::CartesianIndex{2}, strategy::AbstractStrategy=Center())
 
 Retrieve coordinates of the cell index by `p`.
 See `indices` for the inverse function.
@@ -183,6 +185,7 @@ function coords(ga::GeoArray, p::SVector{2,<:Integer}, strategy::AbstractStrateg
 end
 coords(ga::GeoArray, p::Vector{<:Integer}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p), strategy)
 coords(ga::GeoArray, p::Tuple{<:Integer,<:Integer}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p), strategy)
+coords(ga::GeoArray, p::CartesianIndex{2}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p.I), strategy)
 
 """
     indices(ga::GeoArray, p::SVector{2,<:Real}, strategy::AbstractStrategy)
@@ -192,9 +195,9 @@ Retrieve logical indices of the cell represented by coordinates `p`.
 See `coords` for the inverse function.
 """
 function indices(ga::GeoArray, p::SVector{2,<:Real}, strategy::AbstractStrategy)
-    round.(Int, inv(ga.f)(p) .+ strategy.offset)::SVector{2,Int}
+    CartesianIndex(Tuple(round.(Int, inv(ga.f)(p) .+ strategy.offset)))
 end
-indices(ga::GeoArray, p::Vector{<:Real}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
+indices(ga::GeoArray, p::AbstractVector{<:Real}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
 indices(ga::GeoArray, p::Tuple{<:Real,<:Real}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
 
 
@@ -202,7 +205,7 @@ indices(ga::GeoArray, p::Tuple{<:Real,<:Real}, strategy::AbstractStrategy=Center
 function coords(ga::GeoArray, strategy::AbstractStrategy=Center())
     (ui, uj) = size(ga)[1:2]
     extra = typeof(strategy) == Center ? 0 : 1
-    [coords(ga, SVector{2}(i, j), strategy) for i in 1:ui+extra, j in 1:uj+extra]::Matrix{SVector{2,Float64}}
+    (coords(ga, SVector{2}(i, j), strategy) for i in 1:ui+extra, j in 1:uj+extra)
 end
 
 # Generate coordinates for one dimension of a GeoArray
@@ -221,6 +224,15 @@ function coords(ga::GeoArray, dim::Symbol, strategy::AbstractStrategy=Center())
         error("Use :x or :y as second argument")
     end
     return ci
+end
+
+function ranges(ga::GeoArray, strategy::AbstractStrategy=Center())
+    extra = typeof(strategy) == Center ? 0 : 1
+    lx, ly = coords(ga, (1, 1), strategy)
+    hx, hy = coords(ga, size(ga)[1:2] .+ extra, strategy)
+    dx = ga.f.linear[1, 1]
+    dy = ga.f.linear[2, 2]
+    lx:dx:hx, ly:dy:hy
 end
 
 """

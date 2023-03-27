@@ -72,6 +72,56 @@ function read(fn::AbstractString; masked::Bool=true, band=nothing)
     GeoArray(dataset, am, wkt)
 end
 
+function GeoArray(ds::ArchGDAL.Dataset)
+    dataset = ArchGDAL.RasterDataset(ds)
+    am = get_affine_map(dataset.ds)
+    wkt = ArchGDAL.getproj(dataset)
+
+    # Not yet in type
+    # meta = getmetadata(dataset)
+
+    bands = 1:size(dataset)[end]
+
+    # nodata masking
+    mask = falses((size(dataset)[1:2]..., length(bands)))
+    for (i, b) ∈ enumerate(bands)
+        band = ArchGDAL.getband(dataset, b)
+        maskflags = mask_flags(band)
+
+        # All values are valid, skip masking
+        if :GMF_ALL_VALID in maskflags
+            @debug "No masking"
+            continue
+            # Mask is valid for all bands
+        elseif :GMF_PER_DATASET in maskflags
+            @debug "Mask for each band"
+            maskband = ArchGDAL.getmaskband(band)
+            m = ArchGDAL.read(maskband) .== 0
+            mask[:, :, i] = m
+            # Alpha layer
+        elseif :GMF_ALPHA in maskflags
+            @warn "Dataset has band $i with an Alpha band, which is unsupported for now."
+            continue
+            # Nodata values
+        elseif :GMF_NODATA in maskflags
+            @debug "Flag NODATA"
+            nodata = get_nodata(band)
+            mask[:, :, i] = dataset[:, :, b] .== nodata
+        else
+            @warn "Unknown/unsupported mask."
+        end
+    end
+
+    dataset = dataset[:, :, bands]
+
+    if any(mask)
+        dataset = Array{Union{Missing,eltype(dataset)}}(dataset)
+        dataset[mask] .= missing
+    end
+
+    GeoArray(dataset, am, wkt)
+end
+
 """
 
     write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}())
@@ -83,11 +133,15 @@ to pass driver options, such as setting the compression by `Dict("compression"=>
 function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}())
     w, h, b = size(ga)
     dtype = eltype(ga)
-    data = copy(ga.A)
     use_nodata = false
+    need_copy = false
+
+    data = ga.A
 
     # Slice data and replace missing by nodata
     if isa(dtype, Union) && dtype.a == Missing
+        need_copy = true
+        data = copy(ga.A)  # TODO Only copy when required!
         dtype = dtype.b
         try
             convert(ArchGDAL.GDALDataType, dtype)
@@ -109,6 +163,7 @@ function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=n
         convert(ArchGDAL.GDALDataType, dtype)
         nothing
     catch
+        need_copy || (data = copy(ga.A))
         dtype, data = cast_to_gdal(data)
     end
 
@@ -134,7 +189,7 @@ function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=n
         ArchGDAL.create(string("/vsimem/$(gensym())"), driver=ArchGDAL.getdriver("MEM"), width=w, height=h, nbands=b, dtype=dtype) do dataset
             for i = 1:b
                 band = ArchGDAL.getband(dataset, i)
-                ArchGDAL.write!(band, data[:, :, i])
+                ArchGDAL.write!(band, @view data[:, :, i])
                 use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
             end
 
@@ -151,5 +206,58 @@ function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=n
     fn
 end
 
+
 write!(args...) = write(args...)
 write(fn, ga, nodata=nothing, shortname=find_shortname(fn), options=Dict{String,String}()) = write(fn, ga; nodata=nodata, shortname=shortname, options=options)
+
+
+function ArchGDAL.Dataset(ga::GeoArray)
+    w, h, b = size(ga)
+    dtype = eltype(ga)
+    use_nodata = false
+    use_copy = false
+
+    data = ga.A
+
+    # Slice data and replace missing by nodata
+    if isa(dtype, Union) && dtype.a == Missing
+        need_copy = true
+        data = copy(ga.A)  # TODO Only copy when required!
+        dtype = dtype.b
+        try
+            convert(ArchGDAL.GDALDataType, dtype)
+            nothing
+        catch
+            dtype, data = cast_to_gdal(data)
+        end
+        dtype <: Complex && error("Nodata is not supported with complex numbers, please use `coalesce` to replace missing values with a valid value.")
+        nodata = typemax(dtype)
+        m = ismissing.(data)
+        data[m] .= nodata
+        data = Array{dtype}(data)
+        use_nodata = true
+    end
+
+    try
+        convert(ArchGDAL.GDALDataType, dtype)
+        nothing
+    catch
+        need_copy || (data = copy(ga.A))
+        dtype, data = cast_to_gdal(data)
+    end
+
+    dataset = ArchGDAL.create(string("/vsimem/$(gensym())"), driver=ArchGDAL.getdriver("MEM"), width=w, height=h, nbands=b, dtype=dtype)
+    for i = 1:b
+        band = ArchGDAL.getband(dataset, i)
+        ArchGDAL.write!(band, @view data[:, :, i])
+        use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
+    end
+
+    # Set geotransform and crs
+    gt = affine_to_geotransform(ga.f)
+    ArchGDAL.GDAL.gdalsetgeotransform(dataset.ptr, gt)
+    ArchGDAL.GDAL.gdalsetprojection(dataset.ptr, GFT.val(ga.crs))
+    return dataset
+end
+
+ArchGDAL.RasterDataset(ga::GeoArray) = ArchGDAL.RasterDataset(ArchGDAL.Dataset(ga))

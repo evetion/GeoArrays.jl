@@ -11,7 +11,7 @@ This packages takes its inspiration from Python's [rasterio](https://github.com/
 ## Installation
 
 ```julia
-(v1.7) pkg> add GeoArrays
+(v1.8) pkg> add GeoArrays
 ```
 
 ## Examples
@@ -85,20 +85,27 @@ In case there is missing data, the type will be a `Union{Missing, T}`. To conver
 
 ```julia
 # Find coordinates by index
-julia> GeoArrays.coords(geoarray, [1,1])
+julia> GeoArrays.coords(geoarray, (1,1))
 2-element StaticArrays.SArray{Tuple{2},Float64,1,2}:
  440720.0
       3.75132e6
 ```
 
-All coordinates (tuples) are obtained when omitting the index parameter.
+All coordinates (tuples) are obtained as generator when omitting the index parameter.
 
 ```julia
 # Find all coordinates
-julia> GeoArrays.coords(geoarray)
-101×101 Array{StaticArrays.SArray{Tuple{2},Float64,1,2},2}:
+julia> collect(GeoArrays.coords(geoarray))
+101×101 Matrix{StaticArraysCore.SVector{2, Float64}}:
  [440720.0, 3.75132e6]  [440720.0, 3.75126e6]  [440720.0, 3.7512e6] ...
  ...
+```
+
+Similarly, one can find the coordinates ranges of a GeoArray
+
+```julia
+julia> x, y = GeoArrays.ranges(geoarray)
+(440750.0:60.0:446690.0, 3.75129e6:-60.0:3.74535e6)
 ```
 
 The operation can be reversed, i.e. row and column index can be computed from coordinates with the `indices` function.
@@ -106,9 +113,7 @@ The operation can be reversed, i.e. row and column index can be computed from co
 ```julia
 # Find index by coordinates
 julia> indices(geoarray, [440720.0, 3.75132e6])
-2-element StaticArrays.SArray{Tuple{2},Int64,1,2}:
- 1
- 1
+CartesianIndex(1, 1)
 ```
 
 ### Manipulation
@@ -125,6 +130,16 @@ When GeoArrays have the same dimensions, AffineMap and CRS, addition, subtractio
 # Math with GeoArrays (- + * /)
 julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
 5x5x1 Array{Float64,3} with AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]) and undefined CRS
+```
+
+One can also warp an array, using GDAL behind the scenes.
+For example, we can vertically transform from the ellipsoid
+to the EGM2008 geoid using EPSG code 3855.
+```julia
+ga = GeoArray(zeros((360, 180)))
+bbox!(ga, (min_x=-180, min_y=-90, max_x=180, max_y=90))
+crs!(ga, GeoFormatTypes.EPSG(4326))
+ga2 = GeoArrays.warp(ga, Dict("t_srs" => "EPSG:4326+3855"))
 ```
 
 ### Nodata filling
@@ -194,3 +209,8 @@ julia> plot(ga_sub)
 
 ### Profile
 You can sample the values along a line in a GeoArray with `profile(ga, linestring)`. The linestring can be any geometry that supports [GeoInterface.jl](https://github.com/JuliaGeo/GeoInterface.jl/).
+
+
+## Alternatives
+GeoArrays.jl was written to quickly save a geospatial Array to disk. Its functionality mimics `rasterio` in Python. If one requires more features---such as rasterization or zonal stats---which also work on NetCDF files, [Rasters.jl](https://github.com/rafaqz/Rasters.jl/) is a good alternative. Its functionality is more like `(rio)xarray` in Python.
+
