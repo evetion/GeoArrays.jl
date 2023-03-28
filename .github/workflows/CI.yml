@@ -40,7 +40,7 @@ jobs:
       - uses: julia-actions/julia-buildpkg@v1
       - run: echo /etc/ssl/cert.pem
       - name: Set PROJ_CURL_CA_BUNDLE environment variable 
-         if: matrix.os == 'ubuntu-latest' 
+         if: runner.os == 'Linux' 
          run: |
            echo "PROJ_CURL_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt" >> $GITHUB_ENV
       - uses: julia-actions/julia-runtest@v1
