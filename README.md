@@ -136,9 +136,9 @@ One can also warp an array, using GDAL behind the scenes.
 For example, we can vertically transform from the ellipsoid
 to the EGM2008 geoid using EPSG code 3855.
 Note that the underlying PROJ library needs to find the geoidgrids,
-so if they're not available locally, one needs to set `ENV["PROJ_NETWORK"] = "ON"`.
+so if they're not available locally, one needs to set `ENV["PROJ_NETWORK"] = "ON"`
+as early as possible, ideally before loading GeoArrays.
 ```julia
-ENV["PROJ_NETWORK"] = "ON"
 ga = GeoArray(zeros((360, 180)))
 bbox!(ga, (min_x=-180, min_y=-90, max_x=180, max_y=90))
 crs!(ga, GeoFormatTypes.EPSG(4979))  # WGS83 in 3D (reference to ellipsoid)

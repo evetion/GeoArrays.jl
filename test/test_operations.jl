@@ -53,7 +53,6 @@ using CoordinateTransformations
     end
 
     @testset "warp" begin
-        ENV["PROJ_NETWORK"] = "ON"
         ga = GeoArray(zeros((360, 180)))
         bbox!(ga, (min_x=-180, min_y=-90, max_x=180, max_y=90))
         crs!(ga, GeoFormatTypes.EPSG(9754))

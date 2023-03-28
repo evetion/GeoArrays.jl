@@ -1,6 +1,10 @@
 using GeoArrays
 using Test
 
+# using Aqua
+# Aqua.test_all(GeoArrays)
+ENV["PROJ_NETWORK"] = "ON"
+
 @testset "GeoArrays" begin
     cd(dirname(@__FILE__)) do
         include("get_testdata.jl")
