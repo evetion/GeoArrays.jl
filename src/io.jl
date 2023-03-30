@@ -14,12 +14,20 @@ pre and postfixes to read NetCDF, HDF4 and HDF5.
 """
 function read(fn::AbstractString; masked::Bool=true, band=nothing)
     startswith(fn, "/vsi") || occursin(":", fn) || isfile(fn) || error("File not found.")
-    dataset = ArchGDAL.readraster(fn)
+    GeoArray(ArchGDAL.readraster(fn), masked, band)
+end
+
+function GeoArray(ds::ArchGDAL.Dataset)
+    dataset = ArchGDAL.RasterDataset(ds)
+    GeoArray(dataset)
+end
+
+function GeoArray(dataset::ArchGDAL.RasterDataset, masked=true, band=nothing)
     am = get_affine_map(dataset.ds)
     wkt = ArchGDAL.getproj(dataset)
 
     # Not yet in type
-    # meta = getmetadata(dataset)
+    metadata = getmetadata(dataset)
 
     if isnothing(band)
         bands = 1:size(dataset)[end]
@@ -68,57 +76,7 @@ function read(fn::AbstractString; masked::Bool=true, band=nothing)
         dataset[mask] .= missing
     end
 
-    GeoArray(dataset, am, wkt)
-end
-
-function GeoArray(ds::ArchGDAL.Dataset)
-    dataset = ArchGDAL.RasterDataset(ds)
-    am = get_affine_map(dataset.ds)
-    wkt = ArchGDAL.getproj(dataset)
-
-    # Not yet in type
-    # meta = getmetadata(dataset)
-
-    bands = 1:size(dataset)[end]
-
-    # nodata masking
-    mask = falses((size(dataset)[1:2]..., length(bands)))
-    for (i, b) ∈ enumerate(bands)
-        band = ArchGDAL.getband(dataset, b)
-        maskflags = mask_flags(band)
-
-        # All values are valid, skip masking
-        if :GMF_ALL_VALID in maskflags
-            @debug "No masking"
-            continue
-            # Mask is valid for all bands
-        elseif :GMF_PER_DATASET in maskflags
-            @debug "Mask for each band"
-            maskband = ArchGDAL.getmaskband(band)
-            m = ArchGDAL.read(maskband) .== 0
-            mask[:, :, i] = m
-            # Alpha layer
-        elseif :GMF_ALPHA in maskflags
-            @warn "Dataset has band $i with an Alpha band, which is unsupported for now."
-            continue
-            # Nodata values
-        elseif :GMF_NODATA in maskflags
-            @debug "Flag NODATA"
-            nodata = get_nodata(band)
-            mask[:, :, i] = dataset[:, :, b] .== nodata
-        else
-            @warn "Unknown/unsupported mask."
-        end
-    end
-
-    dataset = dataset[:, :, bands]
-
-    if any(mask)
-        dataset = Array{Union{Missing,eltype(dataset)}}(dataset)
-        dataset[mask] .= missing
-    end
-
-    GeoArray(dataset, am, wkt)
+    GeoArray(dataset, am, wkt, metadata)
 end
 
 """
@@ -130,75 +88,32 @@ of the array is used. The shortname determines the GDAL driver, like "GTiff", wh
 to pass driver options, such as setting the compression by `Dict("compression"=>"deflate")`.
 """
 function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}())
-    w, h, b = size(ga)
-    dtype = eltype(ga)
-    use_nodata = false
-    need_copy = false
-
-    data = ga.A
-
-    # Slice data and replace missing by nodata
-    if isa(dtype, Union) && dtype.a == Missing
-        need_copy = true
-        data = copy(ga.A)  # TODO Only copy when required!
-        dtype = dtype.b
-        try
-            convert(ArchGDAL.GDALDataType, dtype)
-            nothing
-        catch
-            dtype, data = cast_to_gdal(data)
-        end
-        dtype <: Complex && error("Nodata is not supported with complex numbers, please use `coalesce` to replace missing values with a valid value.")
-        nodata === nothing && (nodata = typemax(dtype))
-        m = ismissing.(data)
-        data[m] .= nodata
-        data = Array{dtype}(data)
-        use_nodata = true
-    elseif !isnothing(nodata)
-        use_nodata = true
-    end
-
-    try
-        convert(ArchGDAL.GDALDataType, dtype)
-        nothing
-    catch
-        need_copy || (data = copy(ga.A))
-        dtype, data = cast_to_gdal(data)
-    end
 
     driver = ArchGDAL.getdriver(shortname)
     cancreate = ArchGDAL.metadataitem(driver, ArchGDAL.GDAL.GDAL_DCAP_CREATE) == "YES"
     cancopy = ArchGDAL.metadataitem(driver, ArchGDAL.GDAL.GDAL_DCAP_CREATECOPY) == "YES"
 
     if cancreate
+        w, h, b = size(ga)
+        data, dtype, nodata = prep(ga, nodata)
+
         ArchGDAL.create(fn, driver=driver, width=w, height=h, nbands=b, dtype=dtype, options=stringlist(options)) do dataset
             for i = 1:b
                 band = ArchGDAL.getband(dataset, i)
                 ArchGDAL.write!(band, data[:, :, i])
-                use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
+                !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
             end
 
             # Set geotransform and crs
             gt = affine_to_geotransform(ga.f)
             ArchGDAL.GDAL.gdalsetgeotransform(dataset.ptr, gt)
             ArchGDAL.GDAL.gdalsetprojection(dataset.ptr, GFT.val(ga.crs))
+            setmetadata(dataset, ga.metadata)
 
         end
     elseif cancopy
-        ArchGDAL.create(string("/vsimem/$(gensym())"), driver=ArchGDAL.getdriver("MEM"), width=w, height=h, nbands=b, dtype=dtype) do dataset
-            for i = 1:b
-                band = ArchGDAL.getband(dataset, i)
-                ArchGDAL.write!(band, data[:, :, i])
-                use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
-            end
-
-            # Set geotransform and crs
-            gt = affine_to_geotransform(ga.f)
-            ArchGDAL.GDAL.gdalsetgeotransform(dataset.ptr, gt)
-            ArchGDAL.GDAL.gdalsetprojection(dataset.ptr, GFT.val(ga.crs))
-
-            ArchGDAL.copy(dataset, filename=fn, driver=driver, options=stringlist(options))
-        end
+        dataset = ArchGDAL.Dataset(ga::GeoArray)
+        ArchGDAL.copy(dataset, filename=fn, driver=driver, options=stringlist(options))
     else
         @error "Cannot create file with $shortname driver."
     end
@@ -212,51 +127,59 @@ write(fn, ga, nodata=nothing, shortname=find_shortname(fn), options=Dict{String,
 
 function ArchGDAL.Dataset(ga::GeoArray)
     w, h, b = size(ga)
-    dtype = eltype(ga)
-    use_nodata = false
-    use_copy = false
 
-    data = ga.A
-
-    # Slice data and replace missing by nodata
-    if isa(dtype, Union) && dtype.a == Missing
-        need_copy = true
-        data = copy(ga.A)  # TODO Only copy when required!
-        dtype = dtype.b
-        try
-            convert(ArchGDAL.GDALDataType, dtype)
-            nothing
-        catch
-            dtype, data = cast_to_gdal(data)
-        end
-        dtype <: Complex && error("Nodata is not supported with complex numbers, please use `coalesce` to replace missing values with a valid value.")
-        nodata = typemax(dtype)
-        m = ismissing.(data)
-        data[m] .= nodata
-        data = Array{dtype}(data)
-        use_nodata = true
-    end
-
-    try
-        convert(ArchGDAL.GDALDataType, dtype)
-        nothing
-    catch
-        need_copy || (data = copy(ga.A))
-        dtype, data = cast_to_gdal(data)
-    end
+    data, dtype, nodata = prep(ga)
 
     dataset = ArchGDAL.create(string("/vsimem/$(gensym())"), driver=ArchGDAL.getdriver("MEM"), width=w, height=h, nbands=b, dtype=dtype)
     for i = 1:b
         band = ArchGDAL.getband(dataset, i)
         ArchGDAL.write!(band, data[:, :, i])
-        use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
+        !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
     end
 
     # Set geotransform and crs
     gt = affine_to_geotransform(ga.f)
     ArchGDAL.GDAL.gdalsetgeotransform(dataset.ptr, gt)
     ArchGDAL.GDAL.gdalsetprojection(dataset.ptr, GFT.val(ga.crs))
+    setmetadata(dataset, ga.metadata)
     return dataset
 end
 
 ArchGDAL.RasterDataset(ga::GeoArray) = ArchGDAL.RasterDataset(ArchGDAL.Dataset(ga))
+
+
+function prep(ga, nodata=nothing)
+    need_nodata = false
+    need_convert = false
+
+    dtype = eltype(ga)
+
+    # Check whether we need to replace missing
+    if isa(dtype, Union) && dtype.a == Missing
+        dtype = dtype.b
+        dtype <: Complex && error("Nodata is not supported with complex numbers, please use `coalesce` to replace missing values with a valid value.")
+        need_nodata = true
+    end
+
+    # Check whether we need to convert to a supported type
+    # hasmethod doesn't work :(
+    try
+        convert(ArchGDAL.GDALDataType, dtype)
+    catch
+        dtype = gdaltype(dtype)
+        need_convert = true
+    end
+
+    if need_nodata
+        data = Array{dtype}(undef, size(ga.A))
+        m = ismissing.(ga.A)
+        isnothing(nodata) && (nodata = typemax(dtype))
+        data[m] .= nodata
+        data[.!m] .= ga.A[.!m]
+    elseif need_convert
+        data = Array{dtype}(ga.A)
+    else
+        data = ga.A
+    end
+    data, dtype, nodata
+end

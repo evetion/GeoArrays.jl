@@ -6,6 +6,9 @@ using CoordinateTransformations
 using StaticArrays
 import GeoInterface as GI
 using IterTools: partition
+import DataAPI
+import Extents
+import GeoInterface
 
 include("geoarray.jl")
 include("geoutils.jl")

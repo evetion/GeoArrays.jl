@@ -6,22 +6,22 @@ end
 
 function Base.:-(a::GeoArray, b::GeoArray)
     isequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
-    GeoArray(a.A .- b.A, a.f, a.crs)
+    GeoArray(a.A .- b.A, a.f, a.crs, a.metadata)
 end
 
 function Base.:+(a::GeoArray, b::GeoArray)
     isequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
-    GeoArray(a.A .+ b.A, a.f, a.crs)
+    GeoArray(a.A .+ b.A, a.f, a.crs, a.metadata)
 end
 
 function Base.:*(a::GeoArray, b::GeoArray)
     isequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
-    GeoArray(a.A .* b.A, a.f, a.crs)
+    GeoArray(a.A .* b.A, a.f, a.crs, a.metadata)
 end
 
 function Base.:/(a::GeoArray, b::GeoArray)
     isequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
-    GeoArray(a.A ./ b.A, a.f, a.crs)
+    GeoArray(a.A ./ b.A, a.f, a.crs, a.metadata)
 end
 
 """
@@ -46,7 +46,7 @@ julia> ga.A
 function Base.coalesce(ga::GeoArray{T,A}, v) where {T,A}
     nT = nonmissingtype(T)
     cA = coalesce.(ga.A, nT(v))
-    GeoArray(cA, ga.f, ga.crs)
+    GeoArray(cA, ga.f, ga.crs, ga.metadata)
 end
 
 """
