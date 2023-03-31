@@ -11,6 +11,7 @@ mutable struct GeoArray{T<:NumberOrMissing,A<:AbstractArray{T,3}} <: AbstractArr
     A::A
     f::CoordinateTransformations.AffineMap{StaticArrays.SMatrix{2,2,Float64,4},StaticArrays.SVector{2,Float64}}
     crs::GFT.WellKnownText{GFT.CRS}
+    metadata::Dict{String}
 end
 
 """
@@ -24,22 +25,24 @@ julia> GeoArray(rand(10,10,1))
 10x10x1 Array{Float64, 3} with AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]) and undefined CRS
 ```
 """
-GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}) = GeoArray(A, geotransform_to_affine(SVector(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)), "")
+GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}) = GeoArray(A, geotransform_to_affine(SVector(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)), "", Dict{String,Any}())
 """
     GeoArray(A::AbstractArray{T,3} where T <: NumberOrMissing, f::AffineMap)
 
 Construct a GeoArray from any Array and an `AffineMap` that specifies the coordinates. A default `CRS` will be generated.
 """
-GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), ""))
+GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), ""), Dict{String,Any}())
 
 """
     GeoArray(A::AbstractArray{T,3} where T <: NumberOrMissing, f::AffineMap, crs::String)
 
 Construct a GeoArray from any Array and an `AffineMap` that specifies the coordinates and `crs` string in WKT format.
 """
-GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs))
+GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), Dict{String,Any}())
+GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap, crs::String, d::Dict{String}) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), d)
 
-GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs)
+GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, Dict{String,Any}())
+GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}, d::Dict{String}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, d)
 
 """
     GeoArray(A::AbstractArray{T,2} where T <: NumberOrMissing)
@@ -68,7 +71,7 @@ end
 # Behave like an Array
 Base.size(ga::GeoArray) = size(ga.A)
 Base.IndexStyle(::Type{<:GeoArray}) = IndexCartesian()
-Base.similar(ga::GeoArray, t::Type) = GeoArray(similar(ga.A, t), ga.f, ga.crs)
+Base.similar(ga::GeoArray, t::Type) = GeoArray(similar(ga.A, t), ga.f, ga.crs, ga.metadata)
 Base.iterate(ga::GeoArray) = iterate(ga.A)
 Base.iterate(ga::GeoArray, state) = iterate(ga.A, state)
 Base.length(ga::GeoArray) = length(ga.A)
@@ -76,12 +79,12 @@ Base.parent(ga::GeoArray) = ga.A
 Base.eltype(::Type{GeoArray{T}}) where {T} = T
 Base.show(io::IO, ::MIME"text/plain", ga::GeoArray) = show(io, ga)
 
-Base.convert(::Type{GeoArray{T}}, ga::GeoArray) where {T} = GeoArray(convert(Array{T}, ga.A), ga.f, ga.crs)
+Base.convert(::Type{GeoArray{T}}, ga::GeoArray) where {T} = GeoArray(convert(Array{T}, ga.A), ga.f, ga.crs, ga.metadata)
 
 Base.BroadcastStyle(::Type{<:GeoArray}) = Broadcast.ArrayStyle{GeoArray}()
 function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{GeoArray}}, ::Type{ElType}) where {ElType}
     ga = find_ga(bc)
-    GeoArray(similar(Array{ElType}, axes(bc)), ga.f, ga.crs)
+    GeoArray(similar(Array{ElType}, axes(bc)), ga.f, ga.crs, ga.metadata)
 end
 
 find_ga(bc::Base.Broadcast.Broadcasted) = find_ga(bc.args)
@@ -114,12 +117,12 @@ function Base.getindex(ga::GeoArray, i::AbstractRange, j::AbstractRange, k::Unio
     x, y = first(i) - 1, first(j) - 1
     t = ga.f(SVector(x, y))
     l = ga.f.linear * SMatrix{2,2}([step(i) 0; 0 step(j)])
-    GeoArray(A, AffineMap(l, t), crs(ga))
+    GeoArray(A, AffineMap(l, t), crs(ga), ga.metadata)
 end
 Base.getindex(ga::GeoArray, i::AbstractRange, j::AbstractRange) = Base.getindex(ga, i, j, :)
 
-Base.getindex(ga::GeoArray, I::Vararg{<:Integer,2}) = getindex(ga.A, I...)
-Base.getindex(ga::GeoArray, I::Vararg{<:Integer,3}) = getindex(ga.A, I...)
+Base.getindex(ga::GeoArray, I::Vararg{Integer,2}) = getindex(ga.A, I...)
+Base.getindex(ga::GeoArray, I::Vararg{Integer,3}) = getindex(ga.A, I...)
 
 # Getindex and setindex! with floats
 """
@@ -136,16 +139,16 @@ julia> ga[3.0,3.0]
 ```
 """
 function Base.getindex(ga::GeoArray, I::SVector{2,<:AbstractFloat})
-    (i, j) = indices(ga, I, Center())
-    ga[i, j, :]
+    i = indices(ga, I, Center())
+    ga[i, :]
 end
-Base.getindex(ga::GeoArray, I::Vararg{<:AbstractFloat,2}) = getindex(ga, SVector{2}(I))
+Base.getindex(ga::GeoArray, I::Vararg{AbstractFloat,2}) = getindex(ga, SVector{2}(I))
 
 function Base.setindex!(ga::GeoArray, v, I::SVector{2,AbstractFloat})
-    i, j = indices(ga, I, Center())
-    ga.A[i, j, :] .= v
+    i = indices(ga, I, Center())
+    ga.A[i, :] .= v
 end
-Base.setindex!(ga::GeoArray, v, I::Vararg{<:AbstractFloat,2}) = setindex!(ga, v, SVector{2}(I))
+Base.setindex!(ga::GeoArray, v, I::Vararg{AbstractFloat,2}) = setindex!(ga, v, SVector{2}(I))
 Base.setindex!(ga::GeoArray, v, I::Vararg{Union{<:Integer,<:AbstractRange{<:Integer}},2}) = setindex!(ga.A, v, I...)
 Base.setindex!(ga::GeoArray, v, I::Vararg{Union{<:Integer,<:AbstractRange{<:Integer}},3}) = setindex!(ga.A, v, I...)
 
@@ -173,7 +176,9 @@ struct Vertex <: AbstractStrategy
 end
 
 """
-    coords(ga::GeoArray, p::SVector{2,<:Integer}, strategy::AbstractStrategy)
+    coords(ga::GeoArray, p::SVector{2,<:Integer}, strategy::AbstractStrategy=Center())
+    coords(ga::GeoArray, p::Tuple{<:Integer,<:Integer}, strategy::AbstractStrategy=Center())
+    coords(ga::GeoArray, p::CartesianIndex{2}, strategy::AbstractStrategy=Center())
 
 Retrieve coordinates of the cell index by `p`.
 See `indices` for the inverse function.
@@ -183,6 +188,7 @@ function coords(ga::GeoArray, p::SVector{2,<:Integer}, strategy::AbstractStrateg
 end
 coords(ga::GeoArray, p::Vector{<:Integer}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p), strategy)
 coords(ga::GeoArray, p::Tuple{<:Integer,<:Integer}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p), strategy)
+coords(ga::GeoArray, p::CartesianIndex{2}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p.I), strategy)
 
 """
     indices(ga::GeoArray, p::SVector{2,<:Real}, strategy::AbstractStrategy)
@@ -192,9 +198,9 @@ Retrieve logical indices of the cell represented by coordinates `p`.
 See `coords` for the inverse function.
 """
 function indices(ga::GeoArray, p::SVector{2,<:Real}, strategy::AbstractStrategy)
-    round.(Int, inv(ga.f)(p) .+ strategy.offset)::SVector{2,Int}
+    CartesianIndex(Tuple(round.(Int, inv(ga.f)(p) .+ strategy.offset)))
 end
-indices(ga::GeoArray, p::Vector{<:Real}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
+indices(ga::GeoArray, p::AbstractVector{<:Real}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
 indices(ga::GeoArray, p::Tuple{<:Real,<:Real}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
 
 
@@ -202,7 +208,7 @@ indices(ga::GeoArray, p::Tuple{<:Real,<:Real}, strategy::AbstractStrategy=Center
 function coords(ga::GeoArray, strategy::AbstractStrategy=Center())
     (ui, uj) = size(ga)[1:2]
     extra = typeof(strategy) == Center ? 0 : 1
-    [coords(ga, SVector{2}(i, j), strategy) for i in 1:ui+extra, j in 1:uj+extra]::Matrix{SVector{2,Float64}}
+    (coords(ga, SVector{2}(i, j), strategy) for i in 1:ui+extra, j in 1:uj+extra)
 end
 
 # Generate coordinates for one dimension of a GeoArray
@@ -223,6 +229,15 @@ function coords(ga::GeoArray, dim::Symbol, strategy::AbstractStrategy=Center())
     return ci
 end
 
+function ranges(ga::GeoArray, strategy::AbstractStrategy=Center())
+    extra = typeof(strategy) == Center ? 0 : 1
+    lx, ly = coords(ga, (1, 1), strategy)
+    hx, hy = coords(ga, size(ga)[1:2] .+ extra, strategy)
+    dx = ga.f.linear[1, 1]
+    dy = ga.f.linear[2, 2]
+    lx:dx:hx, ly:dy:hy
+end
+
 """
     coords!(ga, x::AbstractUnitRange, y::AbstractUnitRange)
 
@@ -232,4 +247,20 @@ function coords!(ga, x::AbstractUnitRange, y::AbstractUnitRange)
     size(ga)[1:2] != (length(x), length(y)) && error("Size of `GeoArray` $(size(ga)) does not match size of (x,y): $((length(x), length(y))). Note that this function takes *center coordinates*.")
     ga.f = unitrange_to_affine(x, y)
     ga
+end
+
+DataAPI.metadatasupport(::Type{GeoArray}) = (read=true, write=true)
+DataAPI.metadatakeys(ga) = keys(metadata(ga))
+function DataAPI.metadata(ga::GeoArray, k, default; style=false)
+    get(metadata(ga), k, default)
+end
+function DataAPI.metadata(ga::GeoArray; style=false)
+    metadata(ga)
+end
+function DataAPI.metadata!(ga::GeoArray, key::AbstractString, value::AbstractString; style::Symbol=:default, domain::Union{Nothing,AbstractString}=nothing)
+    d = isnothing(domain) ? "ROOT" : domain
+    metadata(ga)[d][k] = value
+end
+function DataAPI.emptymetadata!(ga::GeoArray)
+    ga.metadata = Dict{String,Any}()
 end

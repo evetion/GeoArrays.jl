@@ -48,14 +48,13 @@ const gdt_conversion = Dict{DataType,DataType}(
 )
 
 """Converts type of Array for one that exists in GDAL."""
-function cast_to_gdal(A::Array{<:Real,3})
-    type = eltype(A)
+function gdaltype(type)
     if type in keys(gdt_conversion)
         newtype = gdt_conversion[type]
         @warn "Casting $type to $newtype to fit in GDAL."
-        return newtype, convert(Array{newtype}, A)
+        return newtype
     else
-        error("Can't cast $(eltype(A)) to GDAL.")
+        error("Can't cast $(type) to GDAL.")
     end
 end
 
@@ -68,14 +67,42 @@ end
 function getmetadata(ds::ArchGDAL.RasterDataset)
     domains = ArchGDAL.metadatadomainlist(ds.ds)
     values = getmetadata.(Ref(ds), domains)
-    replace!(domains, "" => "ROOT")
+    # replace!(domains, "" => "ROOT")
     Dict(Pair.(domains, values))
 end
 
-function stringlist(dict::Dict{String,String})
+function setmetadata(ds::ArchGDAL.AbstractDataset, d::Dict{String})
+    for (domain, dict) in d
+        for (k, v) in dict
+            ArchGDAL.GDAL.gdalsetmetadataitem(ds, k, v, domain)
+        end
+    end
+end
+
+function stringlist(dict::Dict{String})
     sv = Vector{String}()
     for (k, v) in pairs(dict)
         push!(sv, uppercase(string(k)) * "=" * string(v))
     end
     return sv
 end
+
+function warpstringlist(dict::Dict{String})
+    sv = Vector{String}()
+    for (k, v) in pairs(dict)
+        if v isa Dict
+            for option in stringlist(v)
+                push!(sv, keystring(k))
+                push!(sv, option)
+            end
+        else
+            push!(sv, keystring(k))
+            isempty(v) ? nothing : append!(sv, valuestring(v))
+        end
+    end
+    return sv
+end
+keystring(s) = startswith(s, "-") ? s : string("-", s)
+valuestring(s) = (string(s),)
+valuestring(s::Tuple) = string.(s)
+valuestring(s::Vector) = string.(s)

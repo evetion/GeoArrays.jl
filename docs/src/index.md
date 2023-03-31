@@ -1,20 +1,20 @@
 ```@meta
 CurrentModule = GeoArrays
 ```
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://evetion.github.io/GeoArrays.jl/dev) [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://evetion.github.io/GeoArrays.jl/stable) [![CI](https://github.com/evetion/GeoArrays.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/evetion/GeoArrays.jl/actions/workflows/CI.yml) [![codecov](https://codecov.io/gh/evetion/GeoArrays.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/evetion/GeoArrays.jl)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://evetion.github.io/GeoArrays.jl/dev) [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://evetion.github.io/GeoArrays.jl/stable) [![CI](https://github.com/evetion/GeoArrays.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/evetion/GeoArrays.jl/actions/workflows/CI.yml) [![codecov](https://codecov.io/gh/evetion/GeoArrays.jl/branch/master/graph/badge.svg?token=pXywTRCftQ)](https://codecov.io/gh/evetion/GeoArrays.jl)
 
 # GeoArrays
 
 Simple geographical raster interaction built on top of [ArchGDAL](https://github.com/yeesian/ArchGDAL.jl/), [GDAL](https://github.com/JuliaGeo/GDAL.jl) and [CoordinateTransformations](https://github.com/FugroRoames/CoordinateTransformations.jl).
 
-A [`GeoArray`](@ref) is an AbstractArray, an AffineMap for calculating coordinates based on the axes and a CRS definition to interpret these coordinates into in the real world. It's three dimensional and can be seen as a stack (3D) of 2D geospatial rasters (bands), the dimensions are :x, :y, and :bands. The AffineMap and CRS (coordinates) only operate on the :x and :y dimensions.
+A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based on the axes and a CRS definition to interpret these coordinates into in the real world. It's three dimensional and can be seen as a stack (3D) of 2D geospatial rasters (bands), the dimensions are :x, :y, and :bands. The AffineMap and CRS (coordinates) only operate on the :x and :y dimensions.
 
 This packages takes its inspiration from Python's [rasterio](https://github.com/mapbox/rasterio).
 
 ## Installation
 
 ```julia
-(v1.7) pkg> add GeoArrays
+(v1.8) pkg> add GeoArrays
 ```
 
 ## Examples
@@ -27,7 +27,7 @@ Load the `GeoArrays` package.
 julia> using GeoArrays
 ```
 
-Read a GeoTIFF file, using [`GeoArrays.read`](@ref) and display its information, i.e. AffineMap and projection (CRS).
+Read a GeoTIFF file and display its information, i.e. AffineMap and projection (CRS).
 
 ```julia
 # Read TIF file
@@ -45,8 +45,7 @@ GeoFormatTypes.WellKnownText{GeoFormatTypes.CRS}(GeoFormatTypes.CRS(), "PROJCS[\
 ```
 
 ### Writing to GeoTIFF
-
-Create a random `GeoArray` and [`GeoArrays.write`](@ref) it to a GeoTIFF file. Setting the bounding box and the crs can be set by using [`bbox!`](@ref) and [`epsg!`](@ref).
+Create a random `GeoArray` and write it to a GeoTIFF file.
 
 ```julia
 # Create, reference and write a TIFF
@@ -54,10 +53,11 @@ julia> ga = GeoArray(rand(100,200))
 julia> bbox!(ga, (min_x=2., min_y=51., max_x=5., max_y=54.))  # roughly the Netherlands
 julia> epsg!(ga, 4326)  # in WGS84
 julia> GeoArrays.write("test.tif", ga)
+# Or write it with compression and tiling
+julia> GeoArrays.write("test_compressed.tif", ga; options=Dict("TILED"=>"YES", "COMPRESS"=>"ZSTD"))
 ```
 
 ### Streaming support
-
 The package supports streaming reading.
 
 ```julia
@@ -68,10 +68,9 @@ julia> @time ga = GeoArrays.read(fn, masked=false)
 ```
 
 ### Reading bands
-
 GeoTIFFs can be large, with several bands, one can read.
 
-When working with large rasters, e.g. with satellite images that can be GB in size, it is useful to be able to read only one band (or a selection of them) to `GeoArray`. When using [`read`](@ref), one can specify the band.
+When working with large rasters, e.g. with satellite images that can be GB in size, it is useful to be able to read only one band (or a selection of them) to `GeoArray`. When using `read`, one can specify the band.
 
 ```julia
 # Get file
@@ -85,38 +84,42 @@ julia> ga_band = GeoArrays.read(fn, masked=false, band=2)
 In case there is missing data, the type will be a `Union{Missing, T}`. To convert to a GeoArray without `missing`, you can call `coalesce(ga, value_to_replace_missing)`.
 
 ### Using coordinates
-
-`GeoArray` has geographical coordinates for all array elements (pixels). They can be retrieved with the [`coords`](@ref) function.
+`GeoArray`s have geographical coordinates for all array elements (pixels). They can be retrieved with the `GeoArrays.coords` function.
 
 ```julia
 # Find coordinates by index
-julia> coords(geoarray, [1,1])
+julia> GeoArrays.coords(geoarray, (1,1))
 2-element StaticArrays.SArray{Tuple{2},Float64,1,2}:
  440720.0
       3.75132e6
 ```
 
-All coordinates (tuples) are obtained when omitting the index parameter.
+All coordinates (tuples) are obtained as generator when omitting the index parameter.
 
 ```julia
 # Find all coordinates
-julia> coords(geoarray)
-101×101 Array{StaticArrays.SArray{Tuple{2},Float64,1,2},2}:
+julia> collect(GeoArrays.coords(geoarray))
+101×101 Matrix{StaticArraysCore.SVector{2, Float64}}:
  [440720.0, 3.75132e6]  [440720.0, 3.75126e6]  [440720.0, 3.7512e6] ...
  ...
 ```
 
-The operation can be reversed, i.e. row and column index can be computed from coordinates with the [`indices`](@ref) function.
+Similarly, one can find the coordinates ranges of a GeoArray
+
+```julia
+julia> x, y = GeoArrays.ranges(geoarray)
+(440750.0:60.0:446690.0, 3.75129e6:-60.0:3.74535e6)
+```
+
+The operation can be reversed, i.e. row and column index can be computed from coordinates with the `indices` function.
 
 ```julia
 # Find index by coordinates
 julia> indices(geoarray, [440720.0, 3.75132e6])
-2-element StaticArrays.SArray{Tuple{2},Int64,1,2}:
- 1
- 1
+CartesianIndex(1, 1)
 ```
-### Manipulation
 
+### Manipulation
 Basic `GeoArray` manipulation is implemented, e.g. translation.
 ```julia
 # Translate complete raster by x + 100
@@ -132,12 +135,24 @@ julia> GeoArray(rand(5,5,1)) - GeoArray(rand(5,5,1))
 5x5x1 Array{Float64,3} with AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]) and undefined CRS
 ```
 
-### Nodata filling
+One can also warp an array, using GDAL behind the scenes.
+For example, we can vertically transform from the ellipsoid
+to the EGM2008 geoid using EPSG code 3855.
+Note that the underlying PROJ library needs to find the geoidgrids,
+so if they're not available locally, one needs to set `ENV["PROJ_NETWORK"] = "ON"`
+as early as possible, ideally before loading GeoArrays.
+```julia
+ga = GeoArray(zeros((360, 180)))
+bbox!(ga, (min_x=-180, min_y=-90, max_x=180, max_y=90))
+crs!(ga, GeoFormatTypes.EPSG(4979))  # WGS83 in 3D (reference to ellipsoid)
+ga2 = GeoArrays.warp(ga, Dict("t_srs" => "EPSG:4326+3855"))
+```
 
+### Nodata filling
 GeoArrays with missing data can be filled with the [`fill!`](@ref) function.
 
 ```julia
-julia> using GeoEstimation  # or any esimation solver from the GeoStats ecosystem
+julia> using GeoStatsSolvers  # or any estimation solver from the GeoStats ecosystem
 julia> ga = GeoArray(Array{Union{Missing, Float64}}(rand(5, 1)))
 julia> ga.A[2,1] = missing
 [:, :, 1] =
@@ -156,7 +171,6 @@ julia> GeoArrays.fill!(ga, IDW(:band => (neighbors=3,)))  # band is the hardcode
 ```
 
 ### Plotting
-
 Individual bands from a GeoArray can be plotted with the `plot` function. By default the first band is used.
 
 ```julia
@@ -177,7 +191,6 @@ By default the sample size is twice figure size. You can control this factor by 
 where higher scalefactor yields higher sizes, up to the original GeoArray size.
 
 ### Subsetting arrays
-
 GeoArrays can be subset by row, column and band using the array subsetting notation, e.g. `ga[100:200, 200:300, 1:2]`.
 
 ```julia
@@ -203,11 +216,9 @@ julia> plot(ga_sub)
 ### Profile
 You can sample the values along a line in a GeoArray with `profile(ga, linestring)`. The linestring can be any geometry that supports [GeoInterface.jl](https://github.com/JuliaGeo/GeoInterface.jl/).
 
-## Reference
-```@autodocs
-Modules = [GeoArrays]
-Order   = [:function, :type]
-```
+
+## Alternatives
+GeoArrays.jl was written to quickly save a geospatial Array to disk. Its functionality mimics `rasterio` in Python. If one requires more features---such as rasterization or zonal stats---which also work on NetCDF files, [Rasters.jl](https://github.com/rafaqz/Rasters.jl/) is a good alternative. Its functionality is more like `(rio)xarray` in Python.
 
 ## Index
 ```@index

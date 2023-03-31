@@ -1,5 +1,4 @@
 """
-
     read(fn::AbstractString; masked::Bool=true, band=nothing)
 
 Read a GeoArray from `fn` by using GDAL. The nodata values are automatically set to `Missing`,
@@ -15,12 +14,20 @@ pre and postfixes to read NetCDF, HDF4 and HDF5.
 """
 function read(fn::AbstractString; masked::Bool=true, band=nothing)
     startswith(fn, "/vsi") || occursin(":", fn) || isfile(fn) || error("File not found.")
-    dataset = ArchGDAL.readraster(fn)
+    GeoArray(ArchGDAL.readraster(fn), masked, band)
+end
+
+function GeoArray(ds::ArchGDAL.Dataset)
+    dataset = ArchGDAL.RasterDataset(ds)
+    GeoArray(dataset)
+end
+
+function GeoArray(dataset::ArchGDAL.RasterDataset, masked=true, band=nothing)
     am = get_affine_map(dataset.ds)
     wkt = ArchGDAL.getproj(dataset)
 
     # Not yet in type
-    # meta = getmetadata(dataset)
+    metadata = getmetadata(dataset)
 
     if isnothing(band)
         bands = 1:size(dataset)[end]
@@ -69,7 +76,7 @@ function read(fn::AbstractString; masked::Bool=true, band=nothing)
         dataset[mask] .= missing
     end
 
-    GeoArray(dataset, am, wkt)
+    GeoArray(dataset, am, wkt, metadata)
 end
 
 """
@@ -80,76 +87,114 @@ Write a GeoArray to `fn`. `nodata` is used to set the nodata value. Any `Missing
 of the array is used. The shortname determines the GDAL driver, like "GTiff", when unset the filename extension is used to derive this driver. The `options` argument may be used
 to pass driver options, such as setting the compression by `Dict("compression"=>"deflate")`.
 """
-function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}())
-    w, h, b = size(ga)
-    dtype = eltype(ga)
-    data = copy(ga.A)
-    use_nodata = false
-
-    # Slice data and replace missing by nodata
-    if isa(dtype, Union) && dtype.a == Missing
-        dtype = dtype.b
-        try
-            convert(ArchGDAL.GDALDataType, dtype)
-            nothing
-        catch
-            dtype, data = cast_to_gdal(data)
-        end
-        dtype <: Complex && error("Nodata is not supported with complex numbers, please use `coalesce` to replace missing values with a valid value.")
-        nodata === nothing && (nodata = typemax(dtype))
-        m = ismissing.(data)
-        data[m] .= nodata
-        data = Array{dtype}(data)
-        use_nodata = true
-    elseif !isnothing(nodata)
-        use_nodata = true
-    end
-
-    try
-        convert(ArchGDAL.GDALDataType, dtype)
-        nothing
-    catch
-        dtype, data = cast_to_gdal(data)
-    end
+function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}(), bandnames=nothing)
 
     driver = ArchGDAL.getdriver(shortname)
     cancreate = ArchGDAL.metadataitem(driver, ArchGDAL.GDAL.GDAL_DCAP_CREATE) == "YES"
     cancopy = ArchGDAL.metadataitem(driver, ArchGDAL.GDAL.GDAL_DCAP_CREATECOPY) == "YES"
 
+    w, h, b = size(ga)
+    if isnothing(bandnames)
+        bandnames = [nothing for i in 1:b]
+    else
+        length(bandnames) == b || error("Number of bandnames ($(length(names))) does not match number of bands ($b).")
+    end
+
     if cancreate
+        data, dtype, nodata = prep(ga, nodata)
+
         ArchGDAL.create(fn, driver=driver, width=w, height=h, nbands=b, dtype=dtype, options=stringlist(options)) do dataset
             for i = 1:b
                 band = ArchGDAL.getband(dataset, i)
                 ArchGDAL.write!(band, data[:, :, i])
-                use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
+                !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band, nodata)
+                !isnothing(bandnames[i]) && ArchGDAL.GDAL.gdalsetdescription(band, bandnames[i])
             end
 
             # Set geotransform and crs
             gt = affine_to_geotransform(ga.f)
-            ArchGDAL.GDAL.gdalsetgeotransform(dataset.ptr, gt)
-            ArchGDAL.GDAL.gdalsetprojection(dataset.ptr, GFT.val(ga.crs))
+            ArchGDAL.GDAL.gdalsetgeotransform(dataset, gt)
+            ArchGDAL.GDAL.gdalsetprojection(dataset, GFT.val(ga.crs))
+            setmetadata(dataset, ga.metadata)
 
         end
     elseif cancopy
-        ArchGDAL.create(string("/vsimem/$(gensym())"), driver=ArchGDAL.getdriver("MEM"), width=w, height=h, nbands=b, dtype=dtype) do dataset
-            for i = 1:b
-                band = ArchGDAL.getband(dataset, i)
-                ArchGDAL.write!(band, data[:, :, i])
-                use_nodata && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
-            end
-
-            # Set geotransform and crs
-            gt = affine_to_geotransform(ga.f)
-            ArchGDAL.GDAL.gdalsetgeotransform(dataset.ptr, gt)
-            ArchGDAL.GDAL.gdalsetprojection(dataset.ptr, GFT.val(ga.crs))
-
-            ArchGDAL.copy(dataset, filename=fn, driver=driver, options=stringlist(options))
-        end
+        dataset = ArchGDAL.Dataset(ga::GeoArray, nodata, bandnames)
+        ArchGDAL.copy(dataset, filename=fn, driver=driver, options=stringlist(options))
     else
         @error "Cannot create file with $shortname driver."
     end
     fn
 end
 
+
 write!(args...) = write(args...)
 write(fn, ga, nodata=nothing, shortname=find_shortname(fn), options=Dict{String,String}()) = write(fn, ga; nodata=nodata, shortname=shortname, options=options)
+
+
+function ArchGDAL.Dataset(ga::GeoArray, nodata=nothing, bandnames=nothing)
+    w, h, b = size(ga)
+
+    w, h, b = size(ga)
+    if isnothing(bandnames)
+        bandnames = [nothing for i in 1:b]
+    else
+        length(bandnames) == b || error("Number of bandnames ($(length(names))) does not match number of bands ($b).")
+    end
+
+    data, dtype, nodata = prep(ga, nodata)
+
+    dataset = ArchGDAL.create(string("/vsimem/$(gensym())"), driver=ArchGDAL.getdriver("MEM"), width=w, height=h, nbands=b, dtype=dtype)
+    for i = 1:b
+        band = ArchGDAL.getband(dataset, i)
+        ArchGDAL.write!(band, data[:, :, i])
+        !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band, nodata)
+        !isnothing(bandnames[i]) && ArchGDAL.GDAL.gdalsetdescription(band, bandnames[i])
+    end
+
+    # Set geotransform and crs
+    gt = affine_to_geotransform(ga.f)
+    ArchGDAL.GDAL.gdalsetgeotransform(dataset, gt)
+    ArchGDAL.GDAL.gdalsetprojection(dataset, GFT.val(ga.crs))
+    setmetadata(dataset, ga.metadata)
+    return dataset
+end
+
+ArchGDAL.RasterDataset(ga::GeoArray) = ArchGDAL.RasterDataset(ArchGDAL.Dataset(ga))
+
+
+function prep(ga, nodata=nothing)
+    need_nodata = false
+    need_convert = false
+
+    dtype = eltype(ga)
+
+    # Check whether we need to replace missing
+    if isa(dtype, Union) && dtype.a == Missing
+        dtype = dtype.b
+        dtype <: Complex && error("Nodata is not supported with complex numbers, please use `coalesce` to replace missing values with a valid value.")
+        need_nodata = true
+    end
+
+    # Check whether we need to convert to a supported type
+    # hasmethod doesn't work :(
+    try
+        convert(ArchGDAL.GDALDataType, dtype)
+    catch
+        dtype = gdaltype(dtype)
+        need_convert = true
+    end
+
+    if need_nodata
+        data = Array{dtype}(undef, size(ga.A))
+        m = ismissing.(ga.A)
+        isnothing(nodata) && (nodata = typemax(dtype))
+        data[m] .= nodata
+        data[.!m] .= ga.A[.!m]
+    elseif need_convert
+        data = Array{dtype}(ga.A)
+    else
+        data = ga.A
+    end
+    data, dtype, nodata
+end

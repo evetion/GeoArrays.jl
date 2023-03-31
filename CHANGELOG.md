@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2023-03-27
+- Added `warp` for warping GeoArrays.
+- Added `ranges` for returning the x and y `StepRange` of coordinates.
+- Replaced `equals` with `Base.isequal` and made sure to compare the AffineMap only approximately to account for floating point precision.
+- `coords(ga)` now returns an iterator. Apply `collect` on it for the old behaviour.
+- `indices` now returns a `CartesianIndex` instead of `i, j`. Call `.I` on it for the old behaviour.
+
 ## [0.7.13] - 2023-01-12
 - Added convert, affine!
 - Added broadcast for GeoArray, so `ga .+ 1` isa `GeoArray`
@@ -39,7 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed iterate specification so `sum` on a GeoArray is correct
 
-[unreleased]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.13...HEAD
+[unreleased]: https://github.com/evetion/GeoArrays.jl/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.13...v0.8.0
 [0.7.13]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.12...v0.7.13
 [0.7.12]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.11...v0.7.12
 [0.7.11]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.10...v0.7.11

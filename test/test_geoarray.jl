@@ -111,9 +111,16 @@ end
     ga = GeoArray(rand(10, 10))
     @inferred ga[Float32(1.0), Float32(2.0)]
     i, j = 2, 5
-    x, y = coords(ga, (i, j))
-    ii, jj = indices(ga, (x, y))
-    @inferred indices(ga, (x, y))
+    X = coords(ga, (i, j))
+    ii, jj = indices(ga, X).I
+    @inferred indices(ga, X)
     @test ii == i
     @test jj == j
+end
+
+@testset "Ranges" begin
+    ga = GeoArray(rand(10, 10))
+    X, Y = GeoArrays.ranges(ga)
+    @test X == 0.5:1.0:9.5
+    @test Y == 0.5:1.0:9.5
 end
