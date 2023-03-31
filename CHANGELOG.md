@@ -7,12 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.8.0] - 2023-03-27
+## [0.8.0] - 2023-03-31
 - Added `warp` for warping GeoArrays.
 - Added `ranges` for returning the x and y `StepRange` of coordinates.
 - Replaced `equals` with `Base.isequal` and made sure to compare the AffineMap only approximately to account for floating point precision.
 - `coords(ga)` now returns an iterator. Apply `collect` on it for the old behaviour.
 - `indices` now returns a `CartesianIndex` instead of `i, j`. Call `.I` on it for the old behaviour.
+- `write` takes a bandnames keyword, which can be used to set the band description
+- `metadata`, used in both reading and writing, has been added to a GeoArrays.
 
 ## [0.7.13] - 2023-01-12
 - Added convert, affine!

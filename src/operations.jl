@@ -50,18 +50,19 @@ function Base.coalesce(ga::GeoArray{T,A}, v) where {T,A}
 end
 
 """
-	warp(ga::GeoArray, resolution::Real;
-			   crs::GeoFormat=crs(A),
-			   method::String="near")
-`warp` uses `ArchGDAL.gdalwarp` to warp an `GeoArray`.
+	warp(ga::GeoArray, options::Dict{String,Any}; dest="/vsimem/$(gensym())")
+	warp(ga::GeoArray, like::GeoArray, options::Dict{String,Any}; dest="/vsimem/$(gensym())")
 
-## Arguments
-- `A`: The `GeoArray` to warp.
-- `resolution`: A `Number` specifying the resolution for the output. If the keyword argument `crs` (described below) is specified, `resolution` must be in units of the `crs`.
+`warp` uses `ArchGDAL.gdalwarp` to warp an `GeoArray`. The `options` are passed to GDAL's `gdalwarp` command. See the [gdalwarp docs](https://gdal.org/programs/gdalwarp.html) for a complete list of options.
+Another GeoArray `like` can be passed as the second argument to `warp` to use the `like`'s `crs`, `extent` and `size` as the `ga` crs and resolution.
+The keyword `dest` is used to control where the temporary raster is stored. By default it is stored in memory, but can be set to a file path to directly save the warped GeoArray to disk.
 
-## Keyword Arguments
-- `crs`: A `GeoFormatTypes.GeoFormat` specifying an output crs (`A` with be reprojected to `crs` in addition to being warpd). Defaults to `crs(A)`
-- `method`: A `String` specifying the method to use for resampling. Defaults to `"near"` (nearest neighbor resampling). See [resampling method](https://gdal.org/programs/gdalwarp.html#cmdoption-gdalwarp-r) in the gdalwarp docs for a complete list of possible values.
+# Examples
+```julia-repl
+julia> ga = GeoArray(rand(100,100))
+julia> epsg!(ga, 4326)
+julia> ga2 = GeoArrays.warp(ga, Dict("t_srs" => "EPSG:4326+3855"))
+```
 """
 function warp(ga::GeoArray, options::Dict{String}, dest="/vsimem/$(gensym())")
     dataset = ArchGDAL.Dataset(ga)
@@ -74,8 +75,8 @@ function warp(ga::GeoArray, options::Dict{String}, dest="/vsimem/$(gensym())")
     end
 end
 
-function warp(ga::GeoArray, gao::GeoArray, options::Dict{String}=Dict{String,Any}(), dest="/vsimem/$(gensym())")
-    noptions = warpoptions(gao)
+function warp(ga::GeoArray, like::GeoArray, options::Dict{String}=Dict{String,Any}(), dest="/vsimem/$(gensym())")
+    noptions = warpoptions(like)
     warpdefaults!(noptions)
     merge!(noptions, options)
     warp(ga, noptions, dest)
@@ -93,4 +94,5 @@ end
 
 function warpdefaults!(d::Dict)
     get!(d, "wo", Dict("NUM_THREADS" => string(Threads.nthreads)))
+    get!(d, "multi", "")
 end
