@@ -73,6 +73,11 @@ end
         ga = GeoArrays.read(fn)
         @test all(ismissing.(ga))
     end
+    @testset "Nodata with dtype" begin
+        ga = GeoArray(Array{Union{Missing,Int8}}(rand(1:10, 100, 200, 3)))
+        fn = GeoArrays.write!(joinpath(tempdir(), "test_nodata.tif"), ga, 1)
+        GeoArrays.read(fn)
+    end
     @testset "COG" begin
         ga = GeoArray(Array{Union{Missing,Int32}}(rand(1:10, 2048, 2048, 3)))
         fn = GeoArrays.write(joinpath(testdatadir, "test_cog.tif"), ga; nodata=-1, shortname="COG", options=Dict("compress" => "ZSTD"))
@@ -102,5 +107,19 @@ end
             ga2 = GeoArrays.read(fn)
             @test ga2 == ga
         end
+    end
+    @testset "Bandnames" begin
+        ga = GeoArray(rand(100, 200, 3))
+        ga.metadata = Dict("" => Dict("FOO" => "BAR"))
+        fn = GeoArrays.write(joinpath(tempdir(), "test_bandnames.tif"), ga; shortname="COG", nodata=1.0, options=Dict("compress" => "deflate"), bandnames=["a", "b", "c"])
+        GeoArrays.read(fn)
+    end
+    @testset "Metadata" begin
+        ga = GeoArray(rand(100, 200, 3))
+        d = Dict("" => Dict("FOO" => "BAR"))
+        ga.metadata = d
+        fn = GeoArrays.write(joinpath(tempdir(), "test_metadata.tif"), ga)
+        ga2 = GeoArrays.read(fn)
+        GeoArrays.metadata(ga2) == d
     end
 end

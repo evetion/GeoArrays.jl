@@ -87,32 +87,39 @@ Write a GeoArray to `fn`. `nodata` is used to set the nodata value. Any `Missing
 of the array is used. The shortname determines the GDAL driver, like "GTiff", when unset the filename extension is used to derive this driver. The `options` argument may be used
 to pass driver options, such as setting the compression by `Dict("compression"=>"deflate")`.
 """
-function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}())
+function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}(), bandnames=nothing)
 
     driver = ArchGDAL.getdriver(shortname)
     cancreate = ArchGDAL.metadataitem(driver, ArchGDAL.GDAL.GDAL_DCAP_CREATE) == "YES"
     cancopy = ArchGDAL.metadataitem(driver, ArchGDAL.GDAL.GDAL_DCAP_CREATECOPY) == "YES"
 
+    w, h, b = size(ga)
+    if isnothing(bandnames)
+        bandnames = [nothing for i in 1:b]
+    else
+        length(bandnames) == b || error("Number of bandnames ($(length(names))) does not match number of bands ($b).")
+    end
+
     if cancreate
-        w, h, b = size(ga)
         data, dtype, nodata = prep(ga, nodata)
 
         ArchGDAL.create(fn, driver=driver, width=w, height=h, nbands=b, dtype=dtype, options=stringlist(options)) do dataset
             for i = 1:b
                 band = ArchGDAL.getband(dataset, i)
                 ArchGDAL.write!(band, data[:, :, i])
-                !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
+                !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band, nodata)
+                !isnothing(bandnames[i]) && ArchGDAL.GDAL.gdalsetdescription(band, bandnames[i])
             end
 
             # Set geotransform and crs
             gt = affine_to_geotransform(ga.f)
-            ArchGDAL.GDAL.gdalsetgeotransform(dataset.ptr, gt)
-            ArchGDAL.GDAL.gdalsetprojection(dataset.ptr, GFT.val(ga.crs))
+            ArchGDAL.GDAL.gdalsetgeotransform(dataset, gt)
+            ArchGDAL.GDAL.gdalsetprojection(dataset, GFT.val(ga.crs))
             setmetadata(dataset, ga.metadata)
 
         end
     elseif cancopy
-        dataset = ArchGDAL.Dataset(ga::GeoArray)
+        dataset = ArchGDAL.Dataset(ga::GeoArray, nodata, bandnames)
         ArchGDAL.copy(dataset, filename=fn, driver=driver, options=stringlist(options))
     else
         @error "Cannot create file with $shortname driver."
@@ -125,22 +132,30 @@ write!(args...) = write(args...)
 write(fn, ga, nodata=nothing, shortname=find_shortname(fn), options=Dict{String,String}()) = write(fn, ga; nodata=nodata, shortname=shortname, options=options)
 
 
-function ArchGDAL.Dataset(ga::GeoArray)
+function ArchGDAL.Dataset(ga::GeoArray, nodata=nothing, bandnames=nothing)
     w, h, b = size(ga)
 
-    data, dtype, nodata = prep(ga)
+    w, h, b = size(ga)
+    if isnothing(bandnames)
+        bandnames = [nothing for i in 1:b]
+    else
+        length(bandnames) == b || error("Number of bandnames ($(length(names))) does not match number of bands ($b).")
+    end
+
+    data, dtype, nodata = prep(ga, nodata)
 
     dataset = ArchGDAL.create(string("/vsimem/$(gensym())"), driver=ArchGDAL.getdriver("MEM"), width=w, height=h, nbands=b, dtype=dtype)
     for i = 1:b
         band = ArchGDAL.getband(dataset, i)
         ArchGDAL.write!(band, data[:, :, i])
-        !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band.ptr, nodata)
+        !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band, nodata)
+        !isnothing(bandnames[i]) && ArchGDAL.GDAL.gdalsetdescription(band, bandnames[i])
     end
 
     # Set geotransform and crs
     gt = affine_to_geotransform(ga.f)
-    ArchGDAL.GDAL.gdalsetgeotransform(dataset.ptr, gt)
-    ArchGDAL.GDAL.gdalsetprojection(dataset.ptr, GFT.val(ga.crs))
+    ArchGDAL.GDAL.gdalsetgeotransform(dataset, gt)
+    ArchGDAL.GDAL.gdalsetprojection(dataset, GFT.val(ga.crs))
     setmetadata(dataset, ga.metadata)
     return dataset
 end

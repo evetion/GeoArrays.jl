@@ -67,7 +67,7 @@ end
 function getmetadata(ds::ArchGDAL.RasterDataset)
     domains = ArchGDAL.metadatadomainlist(ds.ds)
     values = getmetadata.(Ref(ds), domains)
-    replace!(domains, "" => "ROOT")
+    # replace!(domains, "" => "ROOT")
     Dict(Pair.(domains, values))
 end
 

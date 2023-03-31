@@ -8,7 +8,6 @@ import GeoInterface as GI
 using IterTools: partition
 import DataAPI
 import Extents
-import GeoInterface
 
 include("geoarray.jl")
 include("geoutils.jl")
@@ -18,6 +17,7 @@ include("interpolate.jl")
 include("crs.jl")
 include("operations.jl")
 include("plot.jl")
+include("geointerface.jl")
 
 export GeoArray
 

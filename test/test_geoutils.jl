@@ -1,4 +1,8 @@
 import GeoInterface as GI
+import GeoFormatTypes as GFT
+import Extents
+using CoordinateTransformations
+
 const tbbox = (min_x=440720.0, min_y=3.74532e6, max_x=446720.0, max_y=3.75132e6)
 
 @testset "GeoUtils" begin
@@ -72,6 +76,8 @@ const tbbox = (min_x=440720.0, min_y=3.74532e6, max_x=446720.0, max_y=3.75132e6)
         GeoArrays.profile!(values_r, ga, b, a, 1)
         @test values == reverse(values_r)
 
+        # TODO profile with smaller dy than dx step
+
         struct LineString end
         GI.isgeometry(::LineString) = true
         GI.geomtrait(::LineString) = GI.LineStringTrait()
@@ -88,6 +94,25 @@ const tbbox = (min_x=440720.0, min_y=3.74532e6, max_x=446720.0, max_y=3.75132e6)
         @test length(values2) == 3
         @test values == reverse(values2)
 
+    end
+
+    @testset "GeoInterface" begin
+        ga = GeoArrays.read(joinpath(testdatadir, "data/utmsmall.tif"))
+        @test GI.crs(ga) isa GFT.GeoFormat
+        @test !isempty(GFT.val(GI.crs(ga)))
+        @test GI.extent(ga) isa Extents.Extent
+        @test GI.extent(ga) == Extents.Extent(X=(440720.0, 446720.0), Y=(3.74532e6, 3.75132e6))
+    end
+
+    @testset "Compose" begin
+        ga = GeoArray(rand(10, 10))
+        compose!(ga::GeoArray, AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]))
+        @test affine(ga).linear == AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]).linear
+        @test affine(ga).translation == AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]).translation
+
+        ga = GeoArray(rand(10, 10))
+        compose!(ga::GeoArray, Translation([5.0, 5.0]))
+        @test affine(ga).translation == [5.0, 5.0]
     end
 
 end

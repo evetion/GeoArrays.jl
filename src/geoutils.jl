@@ -82,7 +82,6 @@ function bboxes(ga::GeoArray)
     cellbounds
 end
 
-GI.crs(ga::GeoArray) = isempty(GFT.val(crs(ga))) ? nothing : crs(ga)
 crs(ga::GeoArray) = ga.crs
 affine(ga::GeoArray) = ga.f
 metadata(ga::GeoArray) = ga.metadata
@@ -288,4 +287,22 @@ function profile!(values, ga, a, b, band)
         end
     end
     return indices
+end
+
+# function Base.convert(
+#     ::Type{CoordinateTransformations.AffineMap{StaticArrays.SMatrix{2,2,Float64,4},StaticArrays.SVector{2,Float64}}},
+#     am::AffineMap{<:AbstractMatrix{<:Real},StaticArrays.SVector{2,Float64}})
+#     AffineMap(SMatrix{2,2}(am.linear), am.translation)
+# end
+
+# function Base.convert(
+#     ::Type{CoordinateTransformations.AffineMap{StaticArrays.SMatrix{2,2,Float64,4},StaticArrays.SVector{2,Float64}}},
+#     am::AffineMap{StaticArrays.SMatrix{2,2,Float64,4},<:AbstractVector{<:Real}})
+#     AffineMap(am.linear, SVector{2,Float64}(am.translation))
+# end
+
+function Base.convert(
+    ::Type{CoordinateTransformations.AffineMap{StaticArrays.SMatrix{2,2,Float64,4},StaticArrays.SVector{2,Float64}}},
+    am::CoordinateTransformations.AffineMap{<:AbstractMatrix{<:Real},<:AbstractVector{<:Real}})
+    AffineMap(SMatrix{2,2,Float64}(am.linear), SVector{2,Float64}(am.translation))
 end

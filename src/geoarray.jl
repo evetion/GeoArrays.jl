@@ -261,11 +261,6 @@ function DataAPI.metadata!(ga::GeoArray, key::AbstractString, value::AbstractStr
     d = isnothing(domain) ? "ROOT" : domain
     metadata(ga)[d][k] = value
 end
-end
 function DataAPI.emptymetadata!(ga::GeoArray)
     ga.metadata = Dict{String,Any}()
-end
-function GeoInterface.extent(ga::GeoArray)
-    bbox = bounds(ga)
-    Extents.Extent(X=(bbox.min_x, bbox.max_x), Y=(bbox.min_y, bbox.max_y))
 end
