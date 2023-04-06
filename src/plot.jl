@@ -17,7 +17,7 @@ using RecipesBase
     @debug "Using scalefactor $sw x $sh to subsample GeoArray"
     ga = sw > 1 || sh > 1 ? ga[begin:sw:end, begin:sh:end] : ga
 
-    c = GeoArrays.coords(ga, Vertex())
+    c = collect(GeoArrays.coords(ga, Vertex()))
     x = map(first, c[:, 1])
     y = map(last, c[end, :])
     z = ga.A[:, :, band]'

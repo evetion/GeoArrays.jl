@@ -88,6 +88,7 @@ function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{GeoArray}},
 end
 
 find_ga(bc::Base.Broadcast.Broadcasted) = find_ga(bc.args)
+find_ga(bc::Base.Broadcast.Extruded) = find_ga(bc.x)
 find_ga(args::Tuple) = find_ga(find_ga(args[1]), Base.tail(args))
 find_ga(x) = x
 find_ga(::Tuple{}) = nothing

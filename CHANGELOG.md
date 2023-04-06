@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2023-04-06
+- Documented bandnames kwarg of `write`
+- Fixed plotting being broken in 0.8
+- Extended broadcast (`isinf.(ga::GeoArray)` now works)
+- Support writing Boolean GeoArrays as UInt8.
+
 ## [0.8.0] - 2023-03-31
 - Added `warp` for warping GeoArrays.
 - Added `ranges` for returning the x and y `StepRange` of coordinates.
@@ -48,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed iterate specification so `sum` on a GeoArray is correct
 
-[unreleased]: https://github.com/evetion/GeoArrays.jl/compare/v0.8.0...HEAD
+[unreleased]: https://github.com/evetion/GeoArrays.jl/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/evetion/GeoArrays.jl/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.13...v0.8.0
 [0.7.13]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.12...v0.7.13
 [0.7.12]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.11...v0.7.12

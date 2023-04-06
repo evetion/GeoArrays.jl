@@ -44,7 +44,8 @@ get_nodata(band::ArchGDAL.AbstractRasterBand) = get_nodata(Ptr{Nothing}(band.ptr
 const gdt_conversion = Dict{DataType,DataType}(
     Int8 => UInt8,
     UInt64 => UInt32,
-    Int64 => Int32
+    Int64 => Int32,
+    Bool => UInt8,
 )
 
 """Converts type of Array for one that exists in GDAL."""
