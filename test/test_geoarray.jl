@@ -79,7 +79,7 @@ end
     @inferred GeoArrays.write(joinpath(testdatadir, "test_conversion.tif"), ga)
 
     ga = GeoArray(rand(Bool, 5, 5))
-    @test_throws ErrorException GeoArrays.write!(joinpath(testdatadir, "test_conversion.tif"), ga)
+    GeoArrays.write(joinpath(testdatadir, "test_conversion.tif"), ga)
 end
 
 @testset "Similar" begin
