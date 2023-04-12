@@ -81,9 +81,9 @@ julia> ga_band = GeoArrays.read(fn, masked=false, band=2)
 In case there is missing data, the type will be a `Union{Missing, T}`. To convert to a GeoArray without `missing`, you can call `coalesce(ga, value_to_replace_missing)`.
 
 ### Reading NetCDFs
-GeoArrays uses ArchGDAL.readraster to open geo raster datasets, and therefor also supports reading formats other than geotiffs  
+GeoArrays uses ArchGDAL.readraster to open geo raster datasets, and therefor supports reading formats other than geotiffs  
 
-To read a netcdf, the file name one must invlude the prefix `NETCDF:` and the suffix `:var`, where var is the name of the NetCDF variable to open 
+To read a netcdf, the file name must include the prefix `NETCDF:` and the suffix `:var`, where var is the name of the NetCDF variable to be opened 
 
 ```julia
 # Get file
