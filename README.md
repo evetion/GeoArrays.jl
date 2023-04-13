@@ -80,6 +80,21 @@ julia> ga_band = GeoArrays.read(fn, masked=false, band=2)
 
 In case there is missing data, the type will be a `Union{Missing, T}`. To convert to a GeoArray without `missing`, you can call `coalesce(ga, value_to_replace_missing)`.
 
+### Reading NetCDFs
+GeoArrays uses ArchGDAL.readraster to open geo raster datasets, and therefor supports reading formats other than geotiffs  
+
+To read a netcdf, the file name must include the prefix `NETCDF:` and the suffix `:var`, where var is the name of the NetCDF variable to be opened 
+
+```julia
+# Get file
+julia> fn = download("https://github.com/OSGeo/gdal/raw/master/autotest/gdrivers/data/netcdf/sentinel5p_fake.nc")
+
+# variable to read 
+julia> var = "my_var";
+julia> ga_nc = GeoArrays.read("NETCDF:$fn:$var", masked=false)
+61x89x1 ArchGDAL.RasterDataset{Float32, ArchGDAL.IDataset} with AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]) and undefined CRS
+```
+
 ### Using coordinates
 `GeoArray`s have geographical coordinates for all array elements (pixels). They can be retrieved with the `GeoArrays.coords` function.
 
@@ -215,5 +230,5 @@ You can sample the values along a line in a GeoArray with `profile(ga, linestrin
 
 
 ## Alternatives
-GeoArrays.jl was written to quickly save a geospatial Array to disk. Its functionality mimics `rasterio` in Python. If one requires more features---such as rasterization or zonal stats---which also work on NetCDF files, [Rasters.jl](https://github.com/rafaqz/Rasters.jl/) is a good alternative. Its functionality is more like `(rio)xarray` in Python.
+GeoArrays.jl was written to quickly save a geospatial Array to disk. Its functionality mimics `rasterio` in Python. If one requires more features---such as rasterization or zonal stats---which also work on NetCDF files, [Rasters.jl](https://github.com/rafaqz/Rasters.jl/) is a good alternative. Its functionality is more like `(rio)xarray` in Python. [NCDatasets](https://github.com/Alexander-Barth/NCDatasets.jl) is a great Julia package if working exclusively with NetCDF files.
 
