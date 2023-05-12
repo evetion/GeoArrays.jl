@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.2] - 2023-05-10
+- Fix backwards compatible constructors for metadata, so the old constructor `GeoArray(A, f, crs)` still works.
+
 ## [0.8.1] - 2023-04-06
 - Documented bandnames kwarg of `write`
 - Fixed plotting being broken in 0.8

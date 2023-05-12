@@ -63,6 +63,7 @@ end
     ga2 = GeoArray(rand(10, 9), x, y, "")
     ga3 = GeoArray(rand(10, 9, 8), x, y)
     ga3 = GeoArray(rand(10, 9, 8), x, y, "")
+    ga4 = GeoArray(rand(10, 9, 8), ga3.f, ga3.crs)
     for i in 1:length(x), j in 1:length(y)
         @test GeoArrays.coords(ga2, [i, j]) ≈ [x[i], y[j]]
     end
