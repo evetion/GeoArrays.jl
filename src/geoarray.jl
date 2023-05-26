@@ -235,9 +235,7 @@ function ranges(ga::GeoArray, strategy::AbstractStrategy=Center())
     extra = typeof(strategy) == Center ? 0 : 1
     lx, ly = coords(ga, (1, 1), strategy)
     hx, hy = coords(ga, size(ga)[1:2] .+ extra, strategy)
-    dx = ga.f.linear[1, 1]
-    dy = ga.f.linear[2, 2]
-    lx:dx:hx, ly:dy:hy
+    range(lx, hx, length=size(ga)[1] + extra), range(ly, hy, length=size(ga)[2] + extra)
 end
 
 """
