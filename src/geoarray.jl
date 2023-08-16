@@ -40,6 +40,7 @@ Construct a GeoArray from any Array and an `AffineMap` that specifies the coordi
 """
 GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), Dict{String,Any}())
 GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap, crs::String, d::Dict{String}) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), d)
+GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, f, crs, Dict{String,Any}())
 
 GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, Dict{String,Any}())
 GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}, d::Dict{String}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, d)
@@ -234,9 +235,7 @@ function ranges(ga::GeoArray, strategy::AbstractStrategy=Center())
     extra = typeof(strategy) == Center ? 0 : 1
     lx, ly = coords(ga, (1, 1), strategy)
     hx, hy = coords(ga, size(ga)[1:2] .+ extra, strategy)
-    dx = ga.f.linear[1, 1]
-    dy = ga.f.linear[2, 2]
-    lx:dx:hx, ly:dy:hy
+    range(lx, hx, length=size(ga)[1] + extra), range(ly, hy, length=size(ga)[2] + extra)
 end
 
 """

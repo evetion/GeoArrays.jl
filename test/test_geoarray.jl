@@ -63,6 +63,7 @@ end
     ga2 = GeoArray(rand(10, 9), x, y, "")
     ga3 = GeoArray(rand(10, 9, 8), x, y)
     ga3 = GeoArray(rand(10, 9, 8), x, y, "")
+    ga4 = GeoArray(rand(10, 9, 8), ga3.f, ga3.crs)
     for i in 1:length(x), j in 1:length(y)
         @test GeoArrays.coords(ga2, [i, j]) ≈ [x[i], y[j]]
     end
@@ -119,8 +120,16 @@ end
 end
 
 @testset "Ranges" begin
-    ga = GeoArray(rand(10, 10))
+    ga = GeoArray(rand(Bool, 21601, 10801))
+    ga.f = AffineMap([0.016666666666666666 0.0; 0.0 -0.016666666666666666], [-180.00833333333333, 90.00833333333334])
     X, Y = GeoArrays.ranges(ga)
-    @test X == 0.5:1.0:9.5
-    @test Y == 0.5:1.0:9.5
+    @test last(X) ≈ 180.00
+    @test last(Y) ≈ -90.00
+    @test length(X) == 21601
+    @test length(Y) == 10801
+    X, Y = GeoArrays.ranges(ga, GeoArrays.Vertex())
+    @test length(X) == 21602
+    @test length(Y) == 10802
+    @test last(X) ≈ 180.00833333333333
+    @test last(Y) ≈ -90.00833333333334
 end
