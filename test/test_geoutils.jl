@@ -70,6 +70,10 @@ const tbbox = (min_x=440720.0, min_y=3.74532e6, max_x=446720.0, max_y=3.75132e6)
         extent = bbox(ga)
         ga0 = crop(ga, extent)
         @test ga0 == ga
+
+        gaf = GeoArrays.flipud!(ga)
+        ga1 = crop(gaf, extent)
+        @test gaf == ga1
     end
 
     @testset "profile" begin

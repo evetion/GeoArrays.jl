@@ -166,15 +166,16 @@ function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
         error("GeoArray and crop box do not overlap")
     end
 
+    # Check extent and get bbox indices
+    ga_x, ga_y, = size(ga)
+    ii_min_x, ii_min_y = indices(ga, (cbox.min_x, cbox.min_y)).I
+    ii_max_x, ii_max_y = indices(ga, (cbox.max_x, cbox.max_y)).I
+
     # Determine indices for crop area
-    ind = indices.(Ref(ga), [(cbox.min_x, cbox.min_y), (cbox.max_x, cbox.max_y)])
-
-    # note GeoArrays uses the convention: rows = x (size(ga, 1)) and columns = y (size(ga, 2))
-    i_min_x = max(minimum(getindex.(ind, 1)), 1)
-    i_max_x = min(maximum(getindex.(ind, 1)), size(ga, 1))
-
-    i_min_y = max(minimum(getindex.(ind, 2)), 1)
-    i_max_y = min(maximum(getindex.(ind, 2)), size(ga, 2))
+    i_min_x = max(min(ii_min_x, ii_max_x), 1)
+    i_max_x = min(max(ii_min_x, ii_max_x), ga_x)
+    i_min_y = max(min(ii_min_y, ii_max_y), 1)
+    i_max_y = min(max(ii_min_y, ii_max_y), ga_y)
 
     # Subset and return GeoArray
     return ga[i_min_x:i_max_x, i_min_y:i_max_y, :]
