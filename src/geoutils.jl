@@ -168,14 +168,14 @@ function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
 
     # Check extent and get bbox indices
     ga_x, ga_y, = size(ga)
-    i_min_x, i_min_y = indices(ga, (cbox.min_x, cbox.max_y)).I
-    i_max_x, i_max_y = indices(ga, (cbox.max_x, cbox.min_y)).I
+    ii_min_x, ii_min_y = indices(ga, (cbox.min_x, cbox.min_y)).I
+    ii_max_x, ii_max_y = indices(ga, (cbox.max_x, cbox.max_y)).I
 
     # Determine indices for crop area
-    i_min_x = max(i_min_x, 1)
-    i_max_x = min(i_max_x, ga_x)
-    i_min_y = max(i_min_y, 1)
-    i_max_y = min(i_max_y, ga_y)
+    i_min_x = max(min(ii_min_x, ii_max_x), 1)
+    i_max_x = min(max(ii_min_x, ii_max_x), ga_x)
+    i_min_y = max(min(ii_min_y, ii_max_y), 1)
+    i_max_y = min(max(ii_min_y, ii_max_y), ga_y)
 
     # Subset and return GeoArray
     return ga[i_min_x:i_max_x, i_min_y:i_max_y, :]
