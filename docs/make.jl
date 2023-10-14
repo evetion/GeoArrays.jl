@@ -12,7 +12,8 @@ makedocs(
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://evetion.github.io/GeoArrays.jl",
-        assets=String[]
+        assets=String[],
+        repolink="https://github.com/evetion/GeoArrays.jl"
     ),
     pages=[
         "Home" => "index.md",

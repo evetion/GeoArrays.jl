@@ -1,12 +1,16 @@
 using GeoStatsBase
 
-"""Interpolate missing values in GeoArray."""
+"""
+    fill!(ga::GeoArray, solver::EstimationSolver, band=1)
+
+Replace missing values in GeoArray `ga` using `solver` from the GeoStats ecosystem.
+"""
 function fill!(ga::GeoArray, solver::T, band=1) where {T<:EstimationSolver}
     data = @view ga.A[:, :, band]
     m = ismissing.(data)
     sum(m) == 0 && return ga
     cds = collect(coords(ga))
-    problemdata = georef(
+    problemdata = GeoStatsBase.georef(
         (; band=@view data[.!m]),
         @view cds[.!m]
     )

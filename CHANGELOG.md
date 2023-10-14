@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.3] - 2023-10-14
+- Update GeoStatsBase compat bounds and fix interpolation
+- Drop Julia 1.6 (LTS), now requires 1.9
+
 ## [0.8.2] - 2023-05-10
 - Fix backwards compatible constructors for metadata, so the old constructor `GeoArray(A, f, crs)` still works.
 
