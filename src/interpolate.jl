@@ -6,7 +6,7 @@ function fill!(ga::GeoArray, solver::T, band=1) where {T<:EstimationSolver}
     m = ismissing.(data)
     sum(m) == 0 && return ga
     cds = collect(coords(ga))
-    problemdata = georef(
+    problemdata = GeoStatsBase.georef(
         (; band=@view data[.!m]),
         @view cds[.!m]
     )
