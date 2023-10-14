@@ -184,7 +184,7 @@ julia> plot(ga)
 julia> plot(ga, band=2)
 ```
 
-![example plot](../img/RGB.byte.png)
+![example plot](img/RGB.byte.png)
 
 Note that for larger GeoArrays, only a sample of the data is plotted for performance.
 By default the sample size is twice figure size. You can control this factor by calling `plot(ga, scalefactor=2)`,
@@ -211,7 +211,7 @@ AffineMap([300.0379266750948 0.0; 0.0 -300.041782729805], [161692.54740834387, 2
 
 julia> plot(ga_sub)
 ```
-![example plot](../img/RGB.byte.subset.png)
+![example plot](img/RGB.byte.subset.png)
 
 ### Profile
 You can sample the values along a line in a GeoArray with `profile(ga, linestring)`. The linestring can be any geometry that supports [GeoInterface.jl](https://github.com/JuliaGeo/GeoInterface.jl/).
@@ -220,6 +220,12 @@ You can sample the values along a line in a GeoArray with `profile(ga, linestrin
 ## Alternatives
 GeoArrays.jl was written to quickly save a geospatial Array to disk. Its functionality mimics `rasterio` in Python. If one requires more features---such as rasterization or zonal stats---which also work on NetCDF files, [Rasters.jl](https://github.com/rafaqz/Rasters.jl/) is a good alternative. Its functionality is more like `(rio)xarray` in Python.
 
-## Index
+# API
+```@autodocs
+Modules = [GeoArrays]
+```
+
+# Index
 ```@index
 ```
+

@@ -1,6 +1,10 @@
 using GeoStatsBase
 
-"""Interpolate missing values in GeoArray."""
+"""
+    fill!(ga::GeoArray, solver::EstimationSolver, band=1)
+
+Replace missing values in GeoArray `ga` using `solver` from the GeoStats ecosystem.
+"""
 function fill!(ga::GeoArray, solver::T, band=1) where {T<:EstimationSolver}
     data = @view ga.A[:, :, band]
     m = ismissing.(data)
