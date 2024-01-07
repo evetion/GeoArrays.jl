@@ -7,8 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.8.3] - 2023-10-14
+## [0.8.5] - 2024-01-07
+- Fix small bug in metadata
+- Move GeoStatsBase into an extension
+
+## [0.8.4] - 2024-01-07
+- Fix crop returning too small an array
 - Update GeoStatsBase compat bounds and fix interpolation
+
+## [0.8.3] - 2023-10-14
+- Correct roundoff errors in ranges
 - Drop Julia 1.6 (LTS), now requires 1.9
 
 ## [0.8.2] - 2023-05-10

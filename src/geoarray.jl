@@ -259,7 +259,7 @@ function DataAPI.metadata(ga::GeoArray; style=false)
 end
 function DataAPI.metadata!(ga::GeoArray, key::AbstractString, value::AbstractString; style::Symbol=:default, domain::Union{Nothing,AbstractString}=nothing)
     d = isnothing(domain) ? "ROOT" : domain
-    metadata(ga)[d][k] = value
+    metadata(ga)[d][key] = value
 end
 function DataAPI.emptymetadata!(ga::GeoArray)
     ga.metadata = Dict{String,Any}()

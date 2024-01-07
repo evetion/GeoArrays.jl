@@ -1,5 +1,5 @@
 push!(LOAD_PATH, "../src/")
-using Documenter, GeoArrays
+using Documenter, GeoArrays, GeoStatsBase
 
 cl = joinpath(@__DIR__, "src/CHANGELOG.md")
 isfile(cl) || cp(joinpath(@__DIR__, "../CHANGELOG.md"), cl)
