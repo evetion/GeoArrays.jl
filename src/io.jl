@@ -14,7 +14,10 @@ pre and postfixes to read NetCDF, HDF4 and HDF5.
 """
 function read(fn::AbstractString; masked::Bool=true, band=nothing)
     startswith(fn, "/vsi") || occursin(":", fn) || isfile(fn) || error("File not found.")
-    GeoArray(ArchGDAL.readraster(fn), masked, band)
+    ds = ArchGDAL.readraster(fn)
+    ga = GeoArray(ds, masked, band)
+    masked && ArchGDAL.destroy(ds)
+    return ga
 end
 
 function GeoArray(ds::ArchGDAL.Dataset)

@@ -105,6 +105,7 @@ end
             fn = joinpath(tempdir(), "test_complex_$T.tif")
             GeoArrays.write(fn, ga)
             ga2 = GeoArrays.read(fn)
+            rm(fn)
             @test ga2 == ga
         end
     end
@@ -113,6 +114,7 @@ end
         ga.metadata = Dict("" => Dict("FOO" => "BAR"))
         fn = GeoArrays.write(joinpath(tempdir(), "test_bandnames.tif"), ga; shortname="COG", nodata=1.0, options=Dict("compress" => "deflate"), bandnames=["a", "b", "c"])
         GeoArrays.read(fn)
+        rm(fn)
     end
     @testset "Metadata" begin
         ga = GeoArray(rand(100, 200, 3))
@@ -120,6 +122,7 @@ end
         ga.metadata = d
         fn = GeoArrays.write(joinpath(tempdir(), "test_metadata.tif"), ga)
         ga2 = GeoArrays.read(fn)
+        rm(fn)
         GeoArrays.metadata(ga2) == d
     end
 end
