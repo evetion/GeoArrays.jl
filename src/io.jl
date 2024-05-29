@@ -14,12 +14,17 @@ pre and postfixes to read NetCDF, HDF4 and HDF5.
 """
 function read(fn::AbstractString; masked::Bool=true, band=nothing)
     startswith(fn, "/vsi") || occursin(":", fn) || isfile(fn) || error("File not found.")
-    GeoArray(ArchGDAL.readraster(fn), masked, band)
+    ds = ArchGDAL.readraster(fn)
+    ga = GeoArray(ds, masked, band)
+    masked && ArchGDAL.destroy(ds)
+    return ga
 end
 
 function GeoArray(ds::ArchGDAL.Dataset)
     dataset = ArchGDAL.RasterDataset(ds)
-    GeoArray(dataset)
+    ga = GeoArray(dataset)
+    ArchGDAL.destroy(ds)
+    return ga
 end
 
 function GeoArray(dataset::ArchGDAL.RasterDataset, masked=true, band=nothing)
@@ -122,6 +127,7 @@ function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=n
     elseif cancopy
         dataset = ArchGDAL.Dataset(ga::GeoArray, nodata, bandnames)
         ArchGDAL.copy(dataset, filename=fn, driver=driver, options=stringlist(options))
+        ArchGDAL.destroy(dataset)
     else
         @error "Cannot create file with $shortname driver."
     end
