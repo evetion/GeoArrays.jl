@@ -11,7 +11,18 @@ end
     for f in remotefiles
         @testset "Reading $f" begin
             ga = GeoArrays.read(joinpath(testdatadir, f), band=1)
-            @test last(size(ga)) == 1
+            @test last(GeoArrays._size(ga)) == 1
+        end
+    end
+end
+
+@testset "Coordinates/indices for rasters" begin
+    for f in remotefiles
+        @testset "Reading $f" begin
+            ga = GeoArrays.read(joinpath(testdatadir, f), band=1)
+            if !iszero(ga.f.linear)
+                @test indices.(Ref(ga), GeoArrays.coords(ga)) == CartesianIndices(ga)
+            end
         end
     end
 end
@@ -93,11 +104,11 @@ end
     end
     @testset "NetCDF" begin
         ga = GeoArrays.read("NetCDF:$(joinpath(testdatadir, "netcdf", "sentinel5p_fake.nc")):my_var")
-        @test size(ga) == (61, 89, 1)
+        @test GeoArrays._size(ga) == (61, 89, 1)
     end
     @testset "Virtual" begin
         ga = GeoArrays.read("/vsicurl/https://github.com/OSGeo/gdal/blob/master/autotest/alg/data/2by2.tif?raw=true")
-        @test size(ga) == (2, 2, 1)
+        @test GeoArrays._size(ga) == (2, 2, 1)
     end
     @testset "Complex numbers" begin
         for T in (Complex{Int16}, Complex{Int32}, Complex{Float32}, Complex{Float64})

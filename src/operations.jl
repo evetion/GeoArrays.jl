@@ -1,26 +1,26 @@
 """Check whether two `GeoArrays`s `a` and `b` are
 geographically equal, although not necessarily in content."""
-function Base.isequal(a::GeoArray, b::GeoArray)
+function isgeoequal(a::GeoArray, b::GeoArray)
     size(a) == size(b) && a.f ≈ b.f && a.crs == b.crs
 end
 
 function Base.:-(a::GeoArray, b::GeoArray)
-    isequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
+    isgeoequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
     GeoArray(a.A .- b.A, a.f, a.crs, a.metadata)
 end
 
 function Base.:+(a::GeoArray, b::GeoArray)
-    isequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
+    isgeoequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
     GeoArray(a.A .+ b.A, a.f, a.crs, a.metadata)
 end
 
 function Base.:*(a::GeoArray, b::GeoArray)
-    isequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
+    isgeoequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
     GeoArray(a.A .* b.A, a.f, a.crs, a.metadata)
 end
 
 function Base.:/(a::GeoArray, b::GeoArray)
-    isequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
+    isgeoequal(a, b) || throw(DimensionMismatch("Can't operate on non-geographic-equal `GeoArray`s"))
     GeoArray(a.A ./ b.A, a.f, a.crs, a.metadata)
 end
 
@@ -43,7 +43,7 @@ julia> ga.A
  2  3
 ```
 """
-function Base.coalesce(ga::GeoArray{T,A}, v) where {T,A}
+function Base.coalesce(ga::GeoArray{T}, v) where {T}
     nT = nonmissingtype(T)
     cA = coalesce.(ga.A, nT(v))
     GeoArray(cA, ga.f, ga.crs, ga.metadata)
@@ -56,6 +56,11 @@ end
 `warp` uses `ArchGDAL.gdalwarp` to warp an `GeoArray`. The `options` are passed to GDAL's `gdalwarp` command. See the [gdalwarp docs](https://gdal.org/programs/gdalwarp.html) for a complete list of options.
 Another GeoArray `like` can be passed as the second argument to `warp` to use the `like`'s `crs`, `extent` and `size` as the `ga` crs and resolution.
 The keyword `dest` is used to control where the temporary raster is stored. By default it is stored in memory, but can be set to a file path to directly save the warped GeoArray to disk.
+
+!!! warning
+    If no local PROJ data is available, (vertically) warping will silently fail. 
+    Use `enable_online_warp()` to enable (slow) network access to PROJ data.
+    For faster operations, use a utlity like `projsync` to download the data locally.
 
 # Examples
 ```julia-repl
@@ -82,9 +87,20 @@ function warp(ga::GeoArray, like::GeoArray, options::Dict{String}=Dict{String,An
     warp(ga, noptions, dest)
 end
 
+"""
+    enable_online_warp(state::Bool=true)
+
+Enable or disable network access for PROJ data, required for `warp` if no local PROJ data is available.
+This has the same effect as setting the environement variable PROJ_NETWORK to "ON" *before* starting Julia.
+"""
+function enable_online_warp(state::Bool=true)
+    ArchGDAL.GDAL.osrsetprojenablenetwork(state)
+    return nothing
+end
+
 function warpoptions(ga::GeoArray)::Dict{String,Any}
     options = Dict{String,Any}(
-        "te" => values(GeoArrays.bbox(ga)),
+        "te" => values(_convert(NamedTuple, GeoArrays.bbox(ga))),
         "ts" => size(ga)[1:2],)
 
     srs = GFT.val(crs(ga))

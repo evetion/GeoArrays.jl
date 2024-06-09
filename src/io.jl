@@ -81,6 +81,10 @@ function GeoArray(dataset::ArchGDAL.RasterDataset, masked=true, band=nothing)
         dataset[mask] .= missing
     end
 
+    if size(dataset)[end] == 1 && masked
+        dataset = dropdims(dataset, dims=3)
+    end
+
     GeoArray(dataset, am, wkt, metadata)
 end
 
@@ -99,7 +103,7 @@ function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=n
     cancreate = ArchGDAL.metadataitem(driver, ArchGDAL.GDAL.GDAL_DCAP_CREATE) == "YES"
     cancopy = ArchGDAL.metadataitem(driver, ArchGDAL.GDAL.GDAL_DCAP_CREATECOPY) == "YES"
 
-    w, h, b = size(ga)
+    w, h, b = _size(ga)
     if isnothing(bandnames)
         bandnames = [nothing for i in 1:b]
     else
@@ -140,9 +144,8 @@ write(fn, ga, nodata=nothing, shortname=find_shortname(fn), options=Dict{String,
 
 
 function ArchGDAL.Dataset(ga::GeoArray, nodata=nothing, bandnames=nothing)
-    w, h, b = size(ga)
+    w, h, b = _size(ga)
 
-    w, h, b = size(ga)
     if isnothing(bandnames)
         bandnames = [nothing for i in 1:b]
     else

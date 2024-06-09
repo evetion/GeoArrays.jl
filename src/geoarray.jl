@@ -16,7 +16,7 @@ mutable struct GeoArray{T<:NumberOrMissing,N,A<:AbstractArray{T,N}} <: AbstractA
 end
 
 """
-    GeoArray(A::AbstractArray{T,3} where T <: NumberOrMissing)
+    GeoArray(A::AbstractArray{T,2|3} where T <: NumberOrMissing)
 
 Construct a GeoArray from any Array. A default `AffineMap` and `CRS` will be generated.
 
@@ -35,7 +35,7 @@ Construct a GeoArray from any Array and an `AffineMap` that specifies the coordi
 GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), ""), Dict{String,Any}())
 
 """
-    GeoArray(A::AbstractArray{T,3} where T <: NumberOrMissing, f::AffineMap, crs::String)
+    GeoArray(A::AbstractArray{T,2|3} where T <: NumberOrMissing, f::AffineMap, crs::String)
 
 Construct a GeoArray from any Array and an `AffineMap` that specifies the coordinates and `crs` string in WKT format.
 """
@@ -46,25 +46,13 @@ GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap, crs::GFT.Wel
 GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, Dict{String,Any}())
 GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}, d::Dict{String}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, d)
 
-"""
-    GeoArray(A::AbstractArray{T,2} where T <: NumberOrMissing)
-
-Construct a GeoArray from any Matrix, a third singleton dimension will be added automatically.
-
-# Examples
-```julia-repl
-julia> GeoArray(rand(10,10))
-10x10x1 Array{Float64, 3} with AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]) and undefined CRS
-```
-"""
-GeoArray(A::AbstractArray{T,2} where {T<:NumberOrMissing}, args...) = GeoArray(reshape(A, size(A)..., 1), args...)
 
 """
-    GeoArray(A::AbstractArray{T,3} where T <: NumberOrMissing, x::AbstractRange, y::AbstractRange, args...)
+    GeoArray(A::AbstractArray{T,2|3} where T <: NumberOrMissing, x::AbstractRange, y::AbstractRange, args...)
 
 Construct a GeoArray any Array and it's coordinates from `AbstractRange`s for each dimension.
 """
-function GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, x::AbstractRange, y::AbstractRange, args...)
+function GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, x::AbstractRange, y::AbstractRange, args...)
     size(A)[1:2] != (length(x), length(y)) && error("Size of `GeoArray` $(size(A)) does not match size of (x,y): $((length(x), length(y))). Note that this function takes *center coordinates*.")
     f = unitrange_to_affine(x, y)
     GeoArray(A, f, args...)
@@ -72,16 +60,29 @@ end
 
 # Behave like an Array
 Base.size(ga::GeoArray) = size(ga.A)
+_size(ga::GeoArray{T,2}) where {T} = (size(ga.A)..., 1)
+_size(ga::GeoArray{T,3}) where {T} = size(ga.A)
 Base.IndexStyle(::Type{<:GeoArray}) = IndexCartesian()
 Base.similar(ga::GeoArray, t::Type) = GeoArray(similar(ga.A, t), ga.f, ga.crs, ga.metadata)
+function Base.similar(ga::GeoArray, A::MatrixorArray)
+    size(ga.A) == size(A) || error(lazy"Size of `GeoArray` $(size(ga.A)) does not match size of `A`: $(size(A)).")
+    GeoArray(A, ga.f, ga.crs, ga.metadata)
+end
 Base.iterate(ga::GeoArray) = iterate(ga.A)
 Base.iterate(ga::GeoArray, state) = iterate(ga.A, state)
 Base.length(ga::GeoArray) = length(ga.A)
 Base.parent(ga::GeoArray) = ga.A
-Base.eltype(::Type{GeoArray{T}}) where {T} = T
+Base.eltype(::Type{GeoArray{T,N}}) where {T,N} = T
 Base.show(io::IO, ::MIME"text/plain", ga::GeoArray) = show(io, ga)
 
-Base.convert(::Type{GeoArray{T}}, ga::GeoArray) where {T} = GeoArray(convert(Array{T}, ga.A), ga.f, ga.crs, ga.metadata)
+function Base.convert(::Type{GeoArray{T}}, ga::GeoArray{X,N}) where {T,N,X}
+    A = convert(Array{T,N}, ga.A)
+    GeoArray(A, ga.f, ga.crs, ga.metadata)
+end
+function Base.convert(::Type{GeoArray{T,N}}, ga::GeoArray) where {T,N}
+    A = convert(Array{T,N}, ga.A)
+    GeoArray(A, ga.f, ga.crs, ga.metadata)
+end
 
 Base.BroadcastStyle(::Type{<:GeoArray}) = Broadcast.ArrayStyle{GeoArray}()
 function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{GeoArray}}, ::Type{ElType}) where {ElType}
@@ -115,17 +116,26 @@ julia> ga[2:3,2:3,1]
 2x2x1 Array{Float64, 3} with AffineMap([1.0 0.0; 0.0 1.0], [1.0, 1.0]) and undefined CRS
 ```
 """
-function Base.getindex(ga::GeoArray, i::AbstractRange, j::AbstractRange, k::Union{Colon,AbstractRange,Integer})
-    A = getindex(ga.A, i, j, k)
+function Base.getindex(ga::GeoArray{T,N}, i::AbstractRange, j::AbstractRange, k::Union{Colon,AbstractRange,Integer}=Colon()) where {T,N}
+    A = N == 2 ? getindex(ga.A, i, j) : getindex(ga.A, i, j, k)
     x, y = first(i) - 1, first(j) - 1
     t = ga.f(SVector(x, y))
     l = ga.f.linear * SMatrix{2,2}([step(i) 0; 0 step(j)])
     GeoArray(A, AffineMap(l, t), crs(ga), ga.metadata)
 end
-Base.getindex(ga::GeoArray, i::AbstractRange, j::AbstractRange) = Base.getindex(ga, i, j, :)
+function Base.getindex(ga::GeoArray{T,N}, i::Colon, j::Colon, k::Union{Colon,AbstractRange,Integer}=Colon()) where {T,N}
+    A = N == 2 ? getindex(ga.A, i, j) : getindex(ga.A, i, j, k)
+    GeoArray(A, ga.f, ga.crs, ga.metadata)
+end
+
+Base.getindex(ga::GeoArray{T,3}, i::AbstractRange, j::AbstractRange) where {T} = Base.getindex(ga, i, j, :)
 
 Base.getindex(ga::GeoArray, I::Vararg{Integer,2}) = getindex(ga.A, I...)
 Base.getindex(ga::GeoArray, I::Vararg{Integer,3}) = getindex(ga.A, I...)
+function Base.getindex(ga::GeoArray{T,2}, I::Vararg{Integer,3}) where {T}
+    I[3] != 1 && throw(BoundsError(ga, I))
+    getindex(ga.A, I[1], I[2])
+end
 
 # Getindex and setindex! with floats
 """
@@ -147,9 +157,13 @@ function Base.getindex(ga::GeoArray, I::SVector{2,<:AbstractFloat})
 end
 Base.getindex(ga::GeoArray, I::Vararg{AbstractFloat,2}) = getindex(ga, SVector{2}(I))
 
-function Base.setindex!(ga::GeoArray, v, I::SVector{2,AbstractFloat})
-    i = indices(ga, I, Center())
+function Base.setindex!(ga::GeoArray{T,3}, v, I::SVector{2,AbstractFloat}) where {T}
+    i = indices(ga, I, Center(), RoundNearestTiesUp)
     ga.A[i, :] .= v
+end
+function Base.setindex!(ga::GeoArray{T,2}, v, I::SVector{2,AbstractFloat}) where {T}
+    i = indices(ga, I, Center(), RoundNearestTiesUp)
+    ga.A[i] = v
 end
 Base.setindex!(ga::GeoArray, v, I::Vararg{AbstractFloat,2}) = setindex!(ga, v, SVector{2}(I))
 Base.setindex!(ga::GeoArray, v, I::Vararg{Union{<:Integer,<:AbstractRange{<:Integer}},2}) = setindex!(ga.A, v, I...)
@@ -194,22 +208,23 @@ coords(ga::GeoArray, p::Tuple{<:Integer,<:Integer}, strategy::AbstractStrategy=C
 coords(ga::GeoArray, p::CartesianIndex{2}, strategy::AbstractStrategy=Center()) = coords(ga, SVector{2}(p.I), strategy)
 
 """
-    indices(ga::GeoArray, p::SVector{2,<:Real}, strategy::AbstractStrategy)
+    indices(ga::GeoArray, p::SVector{2,<:Real}, strategy::AbstractStrategy, rounding::RoundingMode)
 
 Retrieve logical indices of the cell represented by coordinates `p`.
 `strategy` can be used to define whether the coordinates represent the center (`Center`) or the top left corner (`Vertex`) of the cell.
+`rounding` can be used to define how the coordinates are rounded to the nearest integer index.
 See `coords` for the inverse function.
 """
-function indices(ga::GeoArray, p::SVector{2,<:Real}, strategy::AbstractStrategy)
-    CartesianIndex(Tuple(round.(Int, inv(ga.f)(p) .+ strategy.offset)))
+function indices(ga::GeoArray, p::SVector{2,<:Real}, strategy::AbstractStrategy, rounding::RoundingMode)
+    CartesianIndex(Tuple(round.(Int, inv(ga.f)(p) .+ strategy.offset, rounding)))
 end
-indices(ga::GeoArray, p::AbstractVector{<:Real}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
-indices(ga::GeoArray, p::Tuple{<:Real,<:Real}, strategy::AbstractStrategy=Center()) = indices(ga, SVector{2}(p), strategy)
+indices(ga::GeoArray, p::AbstractVector{<:Real}, strategy::AbstractStrategy=Center(), rounding::RoundingMode=RoundNearestTiesUp) = indices(ga, SVector{2}(p), strategy, rounding)
+indices(ga::GeoArray, p::Tuple{<:Real,<:Real}, strategy::AbstractStrategy=Center(), rounding::RoundingMode=RoundNearestTiesUp) = indices(ga, SVector{2}(p), strategy, rounding)
 
 
 # Generate coordinates for complete GeoArray
 function coords(ga::GeoArray, strategy::AbstractStrategy=Center())
-    (ui, uj) = size(ga)[1:2]
+    (ui, uj) = size(ga)
     extra = typeof(strategy) == Center ? 0 : 1
     (coords(ga, SVector{2}(i, j), strategy) for i in 1:ui+extra, j in 1:uj+extra)
 end

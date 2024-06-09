@@ -38,10 +38,10 @@ end
 
 @testset "Reading rasters" begin
     ga = GeoArrays.read(joinpath(testdatadir, "data/utmsmall.tif"))
-    @test bbox(ga) == (min_x=440720.0, min_y=3.74532e6, max_x=446720.0, max_y=3.75132e6)
+    @test bbox(ga) == GeoArrays._convert(Extent, (; min_x=440720.0, min_y=3.74532e6, max_x=446720.0, max_y=3.75132e6))
     @inferred bbox(ga)
-    @test bboxes(ga)[1] == (min_x=440720.0, max_x=440780.0, min_y=3.75126e6, max_y=3.75132e6)
-    @test bboxes(ga)[end] == (min_x=446660.0, max_x=446720.0, min_y=3.74532e6, max_y=3.74538e6)
+    @test bboxes(ga)[1] == GeoArrays._convert(Extent, (; min_x=440720.0, max_x=440780.0, min_y=3.75126e6, max_y=3.75132e6))
+    @test bboxes(ga)[end] == GeoArrays._convert(Extent, (; min_x=446660.0, max_x=446720.0, min_y=3.74532e6, max_y=3.74538e6))
     @inferred bboxes(ga)
 end
 
@@ -93,7 +93,7 @@ end
 
 @testset "Conversion" begin
     ga = GeoArrays.GeoArray(rand(Int16, 10, 10))
-    gc = convert(GeoArrays.GeoArray{Float32}, ga)
+    gc = convert(GeoArrays.GeoArray{Float32,2}, ga)
     @test gc isa GeoArray
     @test eltype(gc) == Float32
     @test all(ga .== gc)
@@ -117,6 +117,8 @@ end
     @inferred indices(ga, X)
     @test ii == i
     @test jj == j
+
+    @test indices.(Ref(ga), GeoArrays.coords(ga)) == CartesianIndices(ga[:, :, 1])
 end
 
 @testset "Ranges" begin

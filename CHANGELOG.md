@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2024-06-09
+
+### Changes
+- [Breaking] Changed type signature of GeoArray to include the number of dimensions. This allows
+for single "band" GeoArrays to be represented as matrices as well. This should make it easier to 
+work with single band rasters and the image ecosystem.
+- [Breaking] `bbox` and friends now return an `Extents.Extent` instead of a `NamedTuple`.
+- [Breaking] Reverted rename of `equals` to `Base.isequal`, now called `isgeoequal`.
+- [Breaking] `getindex`, `indices` and `sample` now use the rounding mode `RoundNearestTiesUp` instead of `RoundNearest`.
+
+### Deprecated
+- [Breaking] Bounding box input for `crop`, `warp` and others is now deprecated. Use an `Extent` instead.
+
+### Fixed
+- Try to release file lock on close as soon as possible.
+- Indexing a GeoArray with `[:, :]` now returns a GeoArray
+
+### Added
+- Added `enable_online_warp` function to enable online access to PROJ data for `warp`.
+- Added `rounding` argument to `indices` to control rounding mode used.
+
 ## [0.8.5] - 2024-01-07
 - Fix small bug in metadata
 - Move GeoStatsBase into an extension
@@ -70,6 +91,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed iterate specification so `sum` on a GeoArray is correct
 
 [unreleased]: https://github.com/evetion/GeoArrays.jl/compare/v0.8.1...HEAD
+[0.9.0]: https://github.com/evetion/GeoArrays.jl/compare/v0.8.5...v0.9.0
+[0.8.5]: https://github.com/evetion/GeoArrays.jl/compare/v0.8.4...v0.8.5
+[0.8.4]: https://github.com/evetion/GeoArrays.jl/compare/v0.8.3...v0.8.4
+[0.8.3]: https://github.com/evetion/GeoArrays.jl/compare/v0.8.2...v0.8.3
+[0.8.2]: https://github.com/evetion/GeoArrays.jl/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/evetion/GeoArrays.jl/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.13...v0.8.0
 [0.7.13]: https://github.com/evetion/GeoArrays.jl/compare/v0.7.12...v0.7.13
