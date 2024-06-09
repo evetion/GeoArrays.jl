@@ -39,13 +39,11 @@ GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap) = GeoArray(A
 
 Construct a GeoArray from any Array and an `AffineMap` that specifies the coordinates and `crs` string in WKT format.
 """
-GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), Dict{String,Any}())
-GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap, crs::String, d::Dict{String}) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), d)
-GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, f, crs, Dict{String,Any}())
-
-GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, Dict{String,Any}())
-GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}, d::Dict{String}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, d)
-
+GeoArray(A) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), Dict{String,Any}())
+GeoArray(A, f, crs::String, d) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), d)
+GeoArray(A, f, crs) = GeoArray(A, f, crs, Dict{String,Any}())
+GeoArray(A, f::AffineMap{Matrix{Float64},Vector{Float64}}, args...) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), args...)
+GeoArray(ga::T, args...) where {T<:GeoArray} = GeoArray(parent(ga), args...)
 
 """
     GeoArray(A::AbstractArray{T,2|3} where T <: NumberOrMissing, x::AbstractRange, y::AbstractRange, args...)
@@ -63,11 +61,12 @@ Base.size(ga::GeoArray) = size(ga.A)
 _size(ga::GeoArray{T,2}) where {T} = (size(ga.A)..., 1)
 _size(ga::GeoArray{T,3}) where {T} = size(ga.A)
 Base.IndexStyle(::Type{<:GeoArray}) = IndexCartesian()
-Base.similar(ga::GeoArray, t::Type) = GeoArray(similar(ga.A, t), ga.f, ga.crs, ga.metadata)
+Base.similar(ga::GeoArray, t::Type) = GeoArray(similar(parent(ga), t), ga.f, ga.crs, ga.metadata)
 function Base.similar(ga::GeoArray, A::MatrixorArray)
     size(ga.A) == size(A) || error(lazy"Size of `GeoArray` $(size(ga.A)) does not match size of `A`: $(size(A)).")
     GeoArray(A, ga.f, ga.crs, ga.metadata)
 end
+Base.similar(ga::GeoArray, A::GeoArray) = similar(ga, parent(A))
 Base.iterate(ga::GeoArray) = iterate(ga.A)
 Base.iterate(ga::GeoArray, state) = iterate(ga.A, state)
 Base.length(ga::GeoArray) = length(ga.A)
