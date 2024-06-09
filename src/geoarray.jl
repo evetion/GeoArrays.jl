@@ -1,13 +1,14 @@
 const NumberOrMissing = Union{Number,Union{Missing,Number}}
+const MatrixorArray = Union{<:AbstractArray{T,2},<:AbstractArray{T,3}} where {T}
 
 """
-    GeoArray{T::NumberOrMissing,A<:AbstractArray{T,3}} <: AbstractArray{T,3}
+    GeoArray{T::NumberOrMissing,N,A<:AbstractArray{T,N}} <: AbstractArray{T,N}
 
 A GeoArray is an AbstractArray, an AffineMap for calculating coordinates based on the axes and a CRS definition to interpret these coordinates into in the real world.
 It's three dimensional and can be seen as a stack (3D) of 2D geospatial rasters (bands), the dimensions are :x, :y, and :bands.
 The AffineMap and CRS (coordinates) only operate on the :x and :y dimensions.
 """
-mutable struct GeoArray{T<:NumberOrMissing,A<:AbstractArray{T,3}} <: AbstractArray{T,3}
+mutable struct GeoArray{T<:NumberOrMissing,N,A<:AbstractArray{T,N}} <: AbstractArray{T,N}
     A::A
     f::CoordinateTransformations.AffineMap{StaticArrays.SMatrix{2,2,Float64,4},StaticArrays.SVector{2,Float64}}
     crs::GFT.WellKnownText{GFT.CRS}
@@ -25,25 +26,25 @@ julia> GeoArray(rand(10,10,1))
 10x10x1 Array{Float64, 3} with AffineMap([1.0 0.0; 0.0 1.0], [0.0, 0.0]) and undefined CRS
 ```
 """
-GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}) = GeoArray(A, geotransform_to_affine(SVector(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)), "", Dict{String,Any}())
+GeoArray(A::MatrixorArray where {T<:NumberOrMissing}) = GeoArray(A, geotransform_to_affine(SVector(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)), "", Dict{String,Any}())
 """
     GeoArray(A::AbstractArray{T,3} where T <: NumberOrMissing, f::AffineMap)
 
 Construct a GeoArray from any Array and an `AffineMap` that specifies the coordinates. A default `CRS` will be generated.
 """
-GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), ""), Dict{String,Any}())
+GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), ""), Dict{String,Any}())
 
 """
     GeoArray(A::AbstractArray{T,3} where T <: NumberOrMissing, f::AffineMap, crs::String)
 
 Construct a GeoArray from any Array and an `AffineMap` that specifies the coordinates and `crs` string in WKT format.
 """
-GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), Dict{String,Any}())
-GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap, crs::String, d::Dict{String}) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), d)
-GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, f, crs, Dict{String,Any}())
+GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), Dict{String,Any}())
+GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap, crs::String, d::Dict{String}) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), d)
+GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, f, crs, Dict{String,Any}())
 
-GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, Dict{String,Any}())
-GeoArray(A::AbstractArray{T,3} where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}, d::Dict{String}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, d)
+GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, Dict{String,Any}())
+GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap{Matrix{Float64},Vector{Float64}}, crs::GFT.WellKnownText{GFT.CRS}, d::Dict{String}) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), crs, d)
 
 """
     GeoArray(A::AbstractArray{T,2} where T <: NumberOrMissing)
