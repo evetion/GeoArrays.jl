@@ -63,7 +63,7 @@ _size(ga::GeoArray{T,3}) where {T} = size(ga.A)
 Base.IndexStyle(::Type{<:GeoArray}) = IndexCartesian()
 Base.similar(ga::GeoArray, t::Type) = GeoArray(similar(parent(ga), t), ga.f, ga.crs, ga.metadata)
 function Base.similar(ga::GeoArray, A::MatrixorArray)
-    size(ga.A) == size(A) || error(lazy"Size of `GeoArray` $(size(ga.A)) does not match size of `A`: $(size(A)).")
+    size(ga.A)[1:2] == size(A)[1:2] || error(lazy"Size of `GeoArray` $(size(ga.A)) does not match size of `A`: $(size(A)).")
     GeoArray(A, ga.f, ga.crs, ga.metadata)
 end
 Base.similar(ga::GeoArray, A::GeoArray) = similar(ga, parent(A))
