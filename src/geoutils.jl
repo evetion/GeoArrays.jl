@@ -32,17 +32,17 @@ function is_rotated(ga::GeoArray)
 end
 
 function bbox(ga::GeoArray)
-    i, j, _ = size(ga)
+    i, j = size(ga)
     if is_rotated(ga)
         ax, ay = ga.f(SVector(0, 0))
         bx, by = ga.f(SVector(i, 0))
         cx, cy = ga.f(SVector(0, j))
         dx, dy = ga.f(SVector(i, j))
-        (min_x=min(ax, bx, cx, dx), min_y=min(ay, by, cy, dy), max_x=max(ax, bx, cx, dx), max_y=max(ay, by, cy, dy))
+        _convert(Extent, (min_x=min(ax, bx, cx, dx), min_y=min(ay, by, cy, dy), max_x=max(ax, bx, cx, dx), max_y=max(ay, by, cy, dy)))
     else
         ax, ay = ga.f(SVector(0, 0))
         bx, by = ga.f(SVector(i, j))
-        (min_x=min(ax, bx), min_y=min(ay, by), max_x=max(ax, bx), max_y=max(ay, by))
+        _convert(Extent, (min_x=min(ax, bx), min_y=min(ay, by), max_x=max(ax, bx), max_y=max(ay, by)))
     end
 end
 
@@ -67,17 +67,18 @@ function bbox!(ga::GeoArray, bbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
     ga.f = bbox_to_affine(size(ga)[1:2], bbox)
     ga
 end
+bbox!(ga::GeoArray, bbox::Extent{(:X, :Y)}) = bbox!(ga, _convert(NamedTuple, bbox))
 
 """Generate bounding boxes for GeoArray cells."""
 function bboxes(ga::GeoArray)
     c = collect(coords(ga, Vertex()))
     m, n = size(c)
-    cellbounds = Matrix{NamedTuple}(undef, (m - 1, n - 1))
+    cellbounds = Matrix{Extent{(:X, :Y)}}(undef, (m - 1, n - 1))
     for j in 1:n-1, i in 1:m-1
         v = c[i:i+1, j:j+1]
         minx, maxx = extrema(first.(v))
         miny, maxy = extrema(last.(v))
-        cellbounds[i, j] = (min_x=minx, max_x=maxx, min_y=miny, max_y=maxy)
+        cellbounds[i, j] = _convert(Extent, (; min_x=minx, max_x=maxx, min_y=miny, max_y=maxy))
     end
     cellbounds
 end
@@ -160,16 +161,16 @@ end
 
 Crop input GeoArray by coordinates (box or another GeoArray). If the coordinates range is larger than the GeoArray, only the overlapping part is given in the result.
 """
-function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
+function crop(ga::GeoArray{T,N}, cbox::Extent{(:X, :Y)}) where {T,N}
     # Check if ga and cbox overlap
-    if !bbox_overlap(bbox(ga), cbox)
-        error("GeoArray and crop box do not overlap")
+    if !intersects(bbox(ga), cbox)
+        error("GeoArray and crop extents do not overlap")
     end
 
     # Check extent and get bbox indices
-    ga_x, ga_y, = size(ga)
-    ii_min_x, ii_min_y = indices(ga, (cbox.min_x, cbox.min_y)).I
-    ii_max_x, ii_max_y = indices(ga, (cbox.max_x, cbox.max_y)).I
+    ga_x, ga_y = size(ga)
+    ii_min_x, ii_min_y = indices(ga, (cbox.X[1], cbox.Y[1]), Center(), RoundNearest).I
+    ii_max_x, ii_max_y = indices(ga, (cbox.X[2], cbox.Y[2]), Center(), RoundNearest).I
 
     # Determine indices for crop area
     i_min_x = max(min(ii_min_x, ii_max_x), 1)
@@ -178,8 +179,13 @@ function crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
     i_max_y = min(max(ii_min_y, ii_max_y), ga_y)
 
     # Subset and return GeoArray
-    return ga[i_min_x:i_max_x, i_min_y:i_max_y, :]
+    if N == 2
+        return ga[i_min_x:i_max_x, i_min_y:i_max_y]
+    else
+        return ga[i_min_x:i_max_x, i_min_y:i_max_y, :]
+    end
 end
+crop(ga::GeoArray, cbox::NamedTuple{(:min_x, :min_y, :max_x, :max_y)}) = crop(ga, _convert(Extent, cbox))
 
 function crop(ga::GeoArray, cga::GeoArray)
     # Check if ga and crop ga CRS are the same
@@ -200,15 +206,15 @@ function sample!(ga::GeoArray, ga2::GeoArray)
     if ga.crs != ga2.crs
         error("GeoArrays have different CRS")
     end
-    wo, ho, zo = size(ga)
-    w, h = size(ga2)[1:2]
+    wo, ho, zo = _size(ga)
+    w, h = size(ga2)
 
     # Compose AffineMap that translates from logical coordinates
     # in `ga` to logical coordinates in `ga2`
-    x = inv(ga2.f) ∘ ga.f
+    f = inv(ga2.f) ∘ ga.f
 
     for io in 1:wo, jo in 1:ho
-        i, j = round.(Int, x((io, jo)) .+ 0.5)
+        i, j = round.(Int, f((io, jo)) .+ 0.5, RoundNearestTiesUp)
         if (1 <= i <= w) && (1 <= j <= h)
             # Loop over bands
             for z in 1:zo
@@ -220,7 +226,8 @@ function sample!(ga::GeoArray, ga2::GeoArray)
     ga
 end
 
-function _sizeof(ga::GeoArray, bbox)
+function _sizeof(ga::GeoArray, extent)
+    bbox = _convert(NamedTuple, extent)
     x = bbox.max_x - bbox.min_x
     y = bbox.max_y - bbox.min_y
     abs.(round.(Int, (x / ga.f.linear[1], y / ga.f.linear[4], size(ga)[3])))
@@ -274,19 +281,18 @@ function profile!(values, ga, a, b, band)
     δy = j1 - j0
 
     if abs(δx) >= abs(δy)
-        j = j0
         xstep = δx > 0 ? 1 : -1
         for (d, i) in enumerate(i0:xstep:i1)
-            push!(values, ga[i, j+div((d - 1) * δy, abs(δx), RoundNearest), band])
+            j = j0 + div((d - 1) * δy, abs(δx), RoundNearestTiesUp)
+            push!(values, ga[i, j, band])
         end
     else
-        i = i0
         ystep = δy > 0 ? 1 : -1
         for (d, j) in enumerate(j0:ystep:j1)
-            push!(values, ga[i+div((d - 1) * δx, abs(δy), RoundNearest), j, band])
+            i = i0 + div((d - 1) * δx, abs(δy), RoundNearest)
+            push!(values, ga[i, j, band])
         end
     end
-    return indices
 end
 
 # function Base.convert(
@@ -305,4 +311,16 @@ function Base.convert(
     ::Type{CoordinateTransformations.AffineMap{StaticArrays.SMatrix{2,2,Float64,4},StaticArrays.SVector{2,Float64}}},
     am::CoordinateTransformations.AffineMap{<:AbstractMatrix{<:Real},<:AbstractVector{<:Real}})
     AffineMap(SMatrix{2,2,Float64}(am.linear), SVector{2,Float64}(am.translation))
+end
+
+function _convert(::Type{Extent}, nt::NamedTuple{(:min_x, :min_y, :max_x, :max_y)})
+    Extent(X=(nt.min_x, nt.max_x), Y=(nt.min_y, nt.max_y))
+end
+_convert(::Type{Extent}, nt::@NamedTuple{min_x::Float64, max_x::Float64, min_y::Float64, max_y::Float64}) = Extent(X=(nt.min_x, nt.max_x), Y=(nt.min_y, nt.max_y))
+
+function _convert(
+    ::Type{NamedTuple},
+    nt::Extent{(:X, :Y)},
+)
+    (; min_x=nt.X[1], min_y=nt.Y[1], max_x=nt.X[2], max_y=nt.Y[2])
 end

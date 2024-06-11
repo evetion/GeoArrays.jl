@@ -7,7 +7,7 @@ using StaticArrays
 import GeoInterface as GI
 using IterTools: partition
 import DataAPI
-import Extents
+using Extents: Extent, intersects
 using PrecompileTools    # this is a small dependency
 
 include("geoarray.jl")
