@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.9.0] - 2024-06-09
+## [0.9.0] - 2024-06-11
 
 ### Changes
 - [Breaking] Changed type signature of GeoArray to include the number of dimensions. This allows

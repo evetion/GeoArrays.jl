@@ -11,7 +11,7 @@ This packages takes its inspiration from Python's [rasterio](https://github.com/
 ## Installation
 
 ```julia
-(v1.8) pkg> add GeoArrays
+(v1.10) pkg> add GeoArrays
 ```
 
 ## Examples
@@ -30,7 +30,7 @@ Read a GeoTIFF file and display its information, i.e. AffineMap and projection (
 # Read TIF file
 julia> fn = download("https://github.com/yeesian/ArchGDALDatasets/blob/master/data/utmsmall.tif?raw=true")
 julia> geoarray = GeoArrays.read(fn)
-100x100x1 Array{UInt8,3} with AffineMap([60.0 0.0; 0.0 -60.0], [440720.0, 3.75132e6]) and CRS PROJCS["NAD27 / UTM zone 11N"...
+100x100 Matrix{UInt8} with AffineMap([60.0 0.0; 0.0 -60.0], [440720.0, 3.75132e6]) and CRS PROJCS["NAD27 / UTM zone 11N"...
 
 # Affinemap containing offset and scaling
 julia> geoarray.f
@@ -152,10 +152,11 @@ For example, we can vertically transform from the ellipsoid
 to the EGM2008 geoid using EPSG code 3855.
 Note that the underlying PROJ library needs to find the geoidgrids,
 so if they're not available locally, one needs to set `ENV["PROJ_NETWORK"] = "ON"`
-as early as possible, ideally before loading GeoArrays.
+as early as possible, ideally before loading GeoArrays, or use `enable_online_warp`.
 ```julia
+enable_online_warp()  # If you don't have PROJ grids locally
 ga = GeoArray(zeros((360, 180)))
-bbox!(ga, (min_x=-180, min_y=-90, max_x=180, max_y=90))
+bbox!(ga, Extent(X(-180, 180), Y(-90, 90)))
 crs!(ga, GeoFormatTypes.EPSG(4979))  # WGS83 in 3D (reference to ellipsoid)
 ga2 = GeoArrays.warp(ga, Dict("t_srs" => "EPSG:4326+3855"))
 ```
