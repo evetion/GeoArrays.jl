@@ -3,15 +3,6 @@ uuid = "2fb1d81b-e6a0-5fc5-82e6-8e06903437ab"
 authors = ["Maarten Pronk <git@evetion.nl>"]
 version = "0.9.0"
 
-[weakdeps]
-GeoStatsBase = "323cb8eb-fbf6-51c0-afd0-f8fba70507b2"
-
-[extensions]
-# name of extension to the left
-# extension dependencies required to load the extension to the right
-# use a list for multiple extension dependencies
-GeoArraysStatsExt = "GeoStatsBase"
-
 [deps]
 ArchGDAL = "c9ce4bd3-c3d5-55b8-8973-c0e20141b8c3"
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
@@ -24,6 +15,12 @@ PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
+[weakdeps]
+GeoStatsBase = "323cb8eb-fbf6-51c0-afd0-f8fba70507b2"
+
+[extensions]
+GeoArraysStatsExt = "GeoStatsBase"
+
 [compat]
 ArchGDAL = "0.7 - 0.9, 0.10"
 CoordinateTransformations = "0.5 - 0.6"
@@ -31,7 +28,7 @@ DataAPI = "1"
 Extents = "0.1"
 GeoFormatTypes = "0.4"
 GeoInterface = "1"
-GeoStatsBase = "0.37 - 0.43"
+GeoStatsBase = "0.37 - 0.43, 0.45"
 IterTools = "1"
 PrecompileTools = "1"
 RecipesBase = "0.7, 0.8, 1.0"
