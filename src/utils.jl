@@ -83,7 +83,7 @@ end
 function stringlist(dict::Dict{String})
     sv = Vector{String}()
     for (k, v) in pairs(dict)
-        push!(sv, uppercase(string(k)) * "=" * string(v))
+        push!(sv, replace(uppercase(string(k)), "COMPRESSION"=>"COMPRESS", "COMPRESSED"=>"COMPRESS") * "=" * string(v))
     end
     return sv
 end
