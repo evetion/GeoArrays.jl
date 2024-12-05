@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] - 2024-12-5
+ 
+### Added
+- Added Makie plotting extension for GeoArrays. Use `plot(ga)` to plot a GeoArray with Makie.
+
 ## [0.9.0] - 2024-06-11
 
 ### Changes
