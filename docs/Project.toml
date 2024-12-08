@@ -1,4 +1,4 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 GeoArrays = "2fb1d81b-e6a0-5fc5-82e6-8e06903437ab"
-GeoStatsBase = "323cb8eb-fbf6-51c0-afd0-f8fba70507b2"
+GeoStatsModels = "ad987403-13c5-47b5-afee-0a48f6ac4f12"
