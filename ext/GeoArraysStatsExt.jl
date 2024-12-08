@@ -1,28 +1,25 @@
 module GeoArraysStatsExt
 
-using GeoArrays, GeoStatsBase
+using GeoArrays, GeoStatsModels, GeoStatsTransforms
 
 """
-    fill!(ga::GeoArray, solver::EstimationSolver, band=1)
+    fill!(ga::GeoArray, solver::GeoStatsModels.GeoStatsModel, band=1, kwargs...)
 
 Replace missing values in GeoArray `ga` using `solver` from the GeoStats ecosystem.
 """
-function GeoArrays.fill!(ga::GeoArray, solver::T, band=1) where {T<:EstimationSolver}
-    data = @view ga.A[:, :, band]
-    m = ismissing.(data)
-    sum(m) == 0 && return ga
-    cds = collect(coords(ga))
-    problemdata = GeoStatsBase.georef(
-        (; band=@view data[.!m]),
-        @view cds[.!m]
-    )
-    problem = EstimationProblem(problemdata, GeoStatsBase.PointSet(cds[m]), :band)
-    solution = solve(problem, solver)
+function GeoArrays.fill!(ga::GeoArray, solver::T, band=1; kwargs...) where {T<:GeoStatsModels.GeoStatsModel}
+    GeoArrays.is_rotated(ga) && error("Can't interpolate rotated GeoArrays yet. Please make an issue.")
 
-    data[m] .= getproperty(solution, :band)
+    data = @view ga.A[:, :, band]
+    any(ismissing, data) || return ga
+
+    domain = GeoStatsModels.CartesianGrid(size(ga)[1:2], Tuple(ga.f.translation), (abs(ga.f.linear[1]), abs(ga.f.linear[4])))
+    problemdata = GeoStatsModels.georef((; z=vec(data)), domain)
+    interp = problemdata |> GeoStatsTransforms.InterpolateMissing(:z => solver; kwargs...)
+    data .= reshape(getproperty(interp, :z), size(data))
     ga
 end
 
-@deprecate interpolate!(ga::GeoArray, solver::T, band=1) where {T<:EstimationSolver} fill!(ga, solver, band)
+@deprecate interpolate!(ga::GeoArray, solver::T, band=1; kwargs...) where {T<:GeoStatsModels.GeoStatsModel} fill!(ga, solver, band; kwargs...)
 
 end
