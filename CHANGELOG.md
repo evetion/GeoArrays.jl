@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.3] - 2024-12-14
+
+- Fixed increasing memory usage of gdalwarp over time.
+- Improved coding style, using more do blocks.
+- Fixed `nthreads` not being correctly set in `warp`.
+ 
 ## [0.9.2] - 2024-12-8
  
 ### Fixed

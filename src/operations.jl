@@ -69,21 +69,19 @@ julia> epsg!(ga, 4326)
 julia> ga2 = GeoArrays.warp(ga, Dict("t_srs" => "EPSG:4326+3855"))
 ```
 """
-function warp(ga::GeoArray, options::Dict{String}, dest="/vsimem/$(gensym())")
-    dataset = ArchGDAL.Dataset(ga)
+function warp(ga::GeoArray, options::Dict{String}, dest="/vsimem/jlgeoarraystempwarp")
     noptions = Dict{String,Any}()
     warpdefaults!(noptions)
     merge!(noptions, options)
-    ds = [dataset]
-    nga = ArchGDAL.gdalwarp(ds, warpstringlist(options); dest
-    ) do warped
-        GeoArray(warped)
+    nga = ArchGDAL.Dataset(ga) do dataset
+        ArchGDAL.gdalwarp([dataset], warpstringlist(options); dest) do warped
+            GeoArray(warped)
+        end
     end
-    ArchGDAL.destroy(dataset)
     return nga
 end
 
-function warp(ga::GeoArray, like::GeoArray, options::Dict{String}=Dict{String,Any}(), dest="/vsimem/$(gensym())")
+function warp(ga::GeoArray, like::GeoArray, options::Dict{String}=Dict{String,Any}(), dest="/vsimem/jlgeoarraystempwarp")
     noptions = warpoptions(like)
     warpdefaults!(noptions)
     merge!(noptions, options)
@@ -112,6 +110,5 @@ function warpoptions(ga::GeoArray)::Dict{String,Any}
 end
 
 function warpdefaults!(d::Dict)
-    get!(d, "wo", Dict("NUM_THREADS" => string(Threads.nthreads)))
-    get!(d, "multi", "")
+    get!(d, "wo", Dict("NUM_THREADS" => string(Threads.nthreads())))
 end

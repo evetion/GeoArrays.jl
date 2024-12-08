@@ -20,10 +20,9 @@ function read(fn::AbstractString; masked::Bool=true, band=nothing)
     return ga
 end
 
-function GeoArray(ds::ArchGDAL.Dataset)
-    dataset = ArchGDAL.RasterDataset(ds)
-    ga = GeoArray(dataset)
-    ArchGDAL.destroy(ds)
+function GeoArray(ds::ArchGDAL.AbstractDataset)
+    ga = GeoArray(ArchGDAL.RasterDataset(ds))
+    ArchGDAL.destroy(ds)  # masked is true
     return ga
 end
 
@@ -69,6 +68,7 @@ function GeoArray(dataset::ArchGDAL.RasterDataset, masked=true, band=nothing)
             else
                 @warn "Unknown/unsupported mask."
             end
+            ArchGDAL.destroy(band)
         end
     end
 
@@ -115,10 +115,11 @@ function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=n
 
         ArchGDAL.create(fn, driver=driver, width=w, height=h, nbands=b, dtype=dtype, options=stringlist(options)) do dataset
             for i = 1:b
-                band = ArchGDAL.getband(dataset, i)
-                ArchGDAL.write!(band, data[:, :, i])
-                !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band, nodata)
-                !isnothing(bandnames[i]) && ArchGDAL.GDAL.gdalsetdescription(band, bandnames[i])
+                ArchGDAL.getband(dataset, i) do band
+                    ArchGDAL.write!(band, data[:, :, i])
+                    !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band, nodata)
+                    !isnothing(bandnames[i]) && ArchGDAL.GDAL.gdalsetdescription(band, bandnames[i])
+                end
             end
 
             # Set geotransform and crs
@@ -126,12 +127,11 @@ function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=n
             ArchGDAL.GDAL.gdalsetgeotransform(dataset, gt)
             ArchGDAL.GDAL.gdalsetprojection(dataset, GFT.val(ga.crs))
             setmetadata(dataset, ga.metadata)
-
         end
     elseif cancopy
-        dataset = ArchGDAL.Dataset(ga::GeoArray, nodata, bandnames)
-        ArchGDAL.copy(dataset, filename=fn, driver=driver, options=stringlist(options))
-        ArchGDAL.destroy(dataset)
+        ArchGDAL.Dataset(ga::GeoArray, nodata, bandnames) do dataset
+            ArchGDAL.copy(dataset, filename=fn, driver=driver, options=stringlist(options))
+        end
     else
         @error "Cannot create file with $shortname driver."
     end
@@ -143,7 +143,7 @@ write!(args...) = write(args...)
 write(fn, ga, nodata=nothing, shortname=find_shortname(fn), options=Dict{String,String}()) = write(fn, ga; nodata=nodata, shortname=shortname, options=options)
 
 
-function ArchGDAL.Dataset(ga::GeoArray, nodata=nothing, bandnames=nothing)
+function ArchGDAL.Dataset(f, ga::GeoArray, nodata=nothing, bandnames=nothing)
     w, h, b = _size(ga)
 
     if isnothing(bandnames)
@@ -154,24 +154,23 @@ function ArchGDAL.Dataset(ga::GeoArray, nodata=nothing, bandnames=nothing)
 
     data, dtype, nodata = prep(ga, nodata)
 
-    dataset = ArchGDAL.create(string("/vsimem/$(gensym())"), driver=ArchGDAL.getdriver("MEM"), width=w, height=h, nbands=b, dtype=dtype)
-    for i = 1:b
-        band = ArchGDAL.getband(dataset, i)
-        ArchGDAL.write!(band, data[:, :, i])
-        !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band, nodata)
-        !isnothing(bandnames[i]) && ArchGDAL.GDAL.gdalsetdescription(band, bandnames[i])
+    ArchGDAL.create(string("/vsimem/$(gensym())"), driver=ArchGDAL.getdriver("MEM"), width=w, height=h, nbands=b, dtype=dtype) do dataset
+        for i = 1:b
+            ArchGDAL.getband(dataset, i) do band
+                ArchGDAL.write!(band, data[:, :, i])
+                !isnothing(nodata) && ArchGDAL.GDAL.gdalsetrasternodatavalue(band, nodata)
+                !isnothing(bandnames[i]) && ArchGDAL.GDAL.gdalsetdescription(band, bandnames[i])
+            end
+        end
+
+        # Set geotransform and crs
+        gt = affine_to_geotransform(ga.f)
+        ArchGDAL.GDAL.gdalsetgeotransform(dataset, gt)
+        ArchGDAL.GDAL.gdalsetprojection(dataset, GFT.val(ga.crs))
+        setmetadata(dataset, ga.metadata)
+        f(dataset)
     end
-
-    # Set geotransform and crs
-    gt = affine_to_geotransform(ga.f)
-    ArchGDAL.GDAL.gdalsetgeotransform(dataset, gt)
-    ArchGDAL.GDAL.gdalsetprojection(dataset, GFT.val(ga.crs))
-    setmetadata(dataset, ga.metadata)
-    return dataset
 end
-
-ArchGDAL.RasterDataset(ga::GeoArray) = ArchGDAL.RasterDataset(ArchGDAL.Dataset(ga))
-
 
 function prep(ga, nodata=nothing)
     need_nodata = false
