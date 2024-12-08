@@ -152,7 +152,7 @@ ga2 = GeoArrays.warp(ga, Dict("t_srs" => "EPSG:4326+3855"))
 GeoArrays with missing data can be filled with the [`fill!`](@ref) function.
 
 ```julia
-julia> using GeoStatsSolvers  # or any estimation solver from the GeoStats ecosystem
+julia> using GeoStats  # or any estimation solver from the GeoStats ecosystem
 julia> ga = GeoArray(Array{Union{Missing, Float64}}(rand(5, 1)))
 julia> ga.A[2,1] = missing
 [:, :, 1] =
@@ -161,7 +161,7 @@ julia> ga.A[2,1] = missing
  0.852882193026649
  0.7137410453351622
  0.5949409082233854
-julia> GeoArrays.fill!(ga, IDW(:band => (neighbors=3,)))  # band is the hardcoded variable
+julia> GeoArrays.fill!(ga, IDW(2), maxneighbors=10)
 [:, :, 1] =
  0.6760718768442127
  0.7543298370153771

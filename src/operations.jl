@@ -74,10 +74,13 @@ function warp(ga::GeoArray, options::Dict{String}, dest="/vsimem/$(gensym())")
     noptions = Dict{String,Any}()
     warpdefaults!(noptions)
     merge!(noptions, options)
-    ArchGDAL.gdalwarp([dataset], warpstringlist(options); dest
+    ds = [dataset]
+    nga = ArchGDAL.gdalwarp(ds, warpstringlist(options); dest
     ) do warped
         GeoArray(warped)
     end
+    ArchGDAL.destroy(dataset)
+    return nga
 end
 
 function warp(ga::GeoArray, like::GeoArray, options::Dict{String}=Dict{String,Any}(), dest="/vsimem/$(gensym())")

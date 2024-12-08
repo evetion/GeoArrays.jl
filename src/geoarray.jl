@@ -116,7 +116,7 @@ julia> ga[2:3,2:3,1]
 ```
 """
 function Base.getindex(ga::GeoArray{T,N}, i::AbstractRange, j::AbstractRange, k::Union{Colon,AbstractRange,Integer}=Colon()) where {T,N}
-    A = N == 2 ? getindex(ga.A, i, j) : getindex(ga.A, i, j, k)
+    A = N == 2 ? getindex(parent(ga), i, j) : getindex(parent(ga), i, j, k)
     x, y = first(i) - 1, first(j) - 1
     t = ga.f(SVector(x, y))
     l = ga.f.linear * SMatrix{2,2}([step(i) 0; 0 step(j)])
