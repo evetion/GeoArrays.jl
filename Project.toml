@@ -1,8 +1,7 @@
 name = "GeoArrays"
 uuid = "2fb1d81b-e6a0-5fc5-82e6-8e06903437ab"
 authors = ["Maarten Pronk <git@evetion.nl>"]
-version = "0.9.3"
-
+version = "0.9.4"
 
 [deps]
 ArchGDAL = "c9ce4bd3-c3d5-55b8-8973-c0e20141b8c3"
@@ -17,9 +16,9 @@ RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [weakdeps]
-Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
 GeoStatsModels = "ad987403-13c5-47b5-afee-0a48f6ac4f12"
 GeoStatsTransforms = "725d9659-360f-4996-9c94-5f19c7e4a8a6"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
 
 [extensions]
 GeoArraysMakieExt = "Makie"
@@ -35,7 +34,7 @@ GeoInterface = "1"
 GeoStatsModels = "0.6"
 GeoStatsTransforms = "0.9"
 IterTools = "1"
-Makie = "0.21"
+Makie = "0.21, 0.22"
 PrecompileTools = "1"
 RecipesBase = "0.7, 0.8, 1.0"
 StaticArrays = "0.12, 1.0"

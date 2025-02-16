@@ -114,6 +114,7 @@ const tbbox = GeoArrays._convert(Extent, (min_x=440720.0, min_y=3.74532e6, max_x
         @test !isempty(GFT.val(GI.crs(ga)))
         @test GI.extent(ga) isa Extents.Extent
         @test GI.extent(ga) == Extents.Extent(X=(440720.0, 446720.0), Y=(3.74532e6, 3.75132e6))
+        @test GI.crstrait(ga) isa GI.ProjectedTrait
     end
 
     @testset "Compose" begin
