@@ -94,7 +94,7 @@ end
 
 Write a GeoArray to `fn`. `nodata` is used to set the nodata value. Any `Missing` values in the GeoArray are converted to this value, otherwise the `typemax` of the element type
 of the array is used. The shortname determines the GDAL driver, like "GTiff", when unset the filename extension is used to derive this driver. The `options` argument may be used
-to pass driver options, such as setting the compression by `Dict("compression"=>"deflate")`. The `bandnames` keyword argument can be set to a vector or tuple of strings to set 
+to pass driver options, such as setting the compression by `Dict("compress"=>"deflate")`. The `bandnames` keyword argument can be set to a vector or tuple of strings to set 
 the band descriptions. It should have the same length as the number of bands.
 """
 function write(fn::AbstractString, ga::GeoArray; nodata::Union{Nothing,Number}=nothing, shortname::AbstractString=find_shortname(fn), options::Dict{String,String}=Dict{String,String}(), bandnames=nothing)
