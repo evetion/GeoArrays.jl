@@ -1,4 +1,6 @@
 using CoordinateTransformations
+import GeoFormatTypes as GFT
+using StaticArrays
 
 @testset "Indexing" begin
     x = GeoArray(rand(5, 5, 5))
@@ -72,6 +74,37 @@ end
     end
     x, y = range(4, stop=8.0, length=11), range(0, stop=1, length=9)
     @test_throws ErrorException GeoArray(rand(10, 9), x, y)
+
+    # Test array-only constructor (issue #184)
+    ga = GeoArray(rand(5, 5))
+    @test ga isa GeoArray
+    @test size(ga) == (5, 5)
+    ga = GeoArray(rand(5, 5, 3))
+    @test ga isa GeoArray
+    @test size(ga) == (5, 5, 3)
+
+    # Test AffineMap + String CRS constructor (issue #184)
+    f = GeoArrays.geotransform_to_affine(SVector(0.0, 1.0, 0.0, 0.0, 0.0, 1.0))
+    ga = GeoArray(rand(5, 5), f, "")
+    @test ga isa GeoArray
+    @test GFT.val(ga.crs) == ""
+    ga = GeoArray(rand(5, 5, 3), f, "EPSG:4326")
+    @test ga isa GeoArray
+    @test GFT.val(ga.crs) == "EPSG:4326"
+
+    # Test AffineMap-only constructor
+    ga = GeoArray(rand(5, 5), f)
+    @test ga isa GeoArray
+
+    # Test AffineMap + WKT CRS constructor
+    ga = GeoArray(rand(5, 5), f, GFT.WellKnownText(GFT.CRS(), ""))
+    @test ga isa GeoArray
+
+    # Test AffineMap + String CRS + metadata constructor
+    ga = GeoArray(rand(5, 5), f, "EPSG:4326", Dict{String,Any}("key" => "value"))
+    @test ga isa GeoArray
+    @test GFT.val(ga.crs) == "EPSG:4326"
+    @test ga.metadata["key"] == "value"
 end
 
 @testset "Conversions" begin

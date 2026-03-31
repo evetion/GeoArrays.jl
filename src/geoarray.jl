@@ -39,7 +39,7 @@ GeoArray(A::MatrixorArray where {T<:NumberOrMissing}, f::AffineMap) = GeoArray(A
 
 Construct a GeoArray from any Array and an `AffineMap` that specifies the coordinates and `crs` string in WKT format.
 """
-GeoArray(A) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), Dict{String,Any}())
+GeoArray(A, f, crs::String) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), Dict{String,Any}())
 GeoArray(A, f, crs::String, d) = GeoArray(A, f, GFT.WellKnownText(GFT.CRS(), crs), d)
 GeoArray(A, f, crs) = GeoArray(A, f, crs, Dict{String,Any}())
 GeoArray(A, f::AffineMap{Matrix{Float64},Vector{Float64}}, args...) = GeoArray(A, AffineMap(SMatrix{2,2}(f.linear), SVector{2}(f.translation)), args...)
