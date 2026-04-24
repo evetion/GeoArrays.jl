@@ -80,10 +80,50 @@ function setmetadata(ds::ArchGDAL.AbstractDataset, d::Dict{String})
     end
 end
 
-function stringlist(dict::Dict{String})
+const gtiffcreationoptions = [
+    "TFW",
+    "RPB",
+    "RPCTXT",
+    "INTERLEAVE",
+    "TILED",
+    "BLOCKXSIZE",
+    "BLOCKYSIZE",
+    "NBITS",
+    "COMPRESS",
+    "NUM_THREADS",
+    "PREDICTOR",
+    "DISCARD_LSB",
+    "SPARSE_OK",
+    "JPEG_QUALITY",
+    "JPEGTABLESMODE",
+    "ZLEVEL",
+    "ZSTD_LEVEL",
+    "MAX_Z_ERROR",
+    "MAX_Z_ERROR_OVERVIEW",
+    "WEBP_LEVEL",
+    "WEBP_LOSSLESS",
+    "JXL_LOSSLESS",
+    "JXL_EFFORT",
+    "JXL_DISTANCE",
+    "JXL_ALPHA_DISTANCE",
+    "PHOTOMETRIC",
+    "ALPHA",
+    "PROFILE",
+    "BIGTIFF",
+    "PIXELTYPE",
+    "COPY_SRC_OVERVIEWS",
+    "STREAMABLE_OUTPUT",
+    "GEOTIFF_KEYS_FLAVOR",
+    "GEOTIFF_VERSION",
+    "COLOR_TABLE_MULTIPLIER"
+]
+
+function stringlist(dict::Dict{String}; validate = true, validatelist = gtiffcreationoptions)
     sv = Vector{String}()
     for (k, v) in pairs(dict)
-        push!(sv, uppercase(string(k)) * "=" * string(v))
+        nk = uppercase(string(k))
+        validate && !(nk in validatelist) && @warn "Unrecognized key $nk. Should be one of $validatelist"
+        push!(sv, nk * "=" * string(v))
     end
     return sv
 end
