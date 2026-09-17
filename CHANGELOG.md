@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fixed Makie plotting of GeoArrays with missing values.
+
 ## [0.9.3] - 2024-12-14
 
 - Fixed increasing memory usage of gdalwarp over time.

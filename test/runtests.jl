@@ -15,5 +15,6 @@ ENV["PROJ_NETWORK"] = "ON"
         include("test_crs.jl")
         include("test_operations.jl")
         include("test_utils.jl")
+        include("test_makie.jl")
     end
 end

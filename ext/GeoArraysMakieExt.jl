@@ -16,7 +16,8 @@ function _convert(t, ga, band)
         @warn "Plotting real part of Complex GeoArray."
         z = real.(z)
     end
-    (x, y, z)
+    # Let Makie convert the data, so that for example `missing` becomes `NaN`
+    Makie.convert_arguments(t, x, y, z)
 end
 
 Makie.convert_arguments(t::Type{Heatmap}, x::Any, y::Any, ga::GeoArray; band=1) = _convert(t, ga, band)
